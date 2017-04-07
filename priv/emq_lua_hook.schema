@@ -1,0 +1,5 @@
+{mapping, "coap.port", "emqx_coap.port", [
+  {datatype, integer}
+]}.
+
+
