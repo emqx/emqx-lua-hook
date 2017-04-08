@@ -11,12 +11,16 @@ Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl)
 
 For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl). 
 
-Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.  
-
 To start this plugin, run following command:
 ```shell
 bin/emqttd_ctl plugins load emq_lua_hook
 ```
+
+## NOTE
+
+Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.
+
+It's hard to debug lua script in emqttd environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory. 
 
 
 # Hook API
