@@ -11,10 +11,15 @@ Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl)
 
 For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl). 
 
+Lua scripts are stored in hook_lua directory, and will be loaded automatically. If a script is changed during runtime, it should be reloaded to take effect. 
+
+Each lua script could export several functions binding with emqttd hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.   
+
 To start this plugin, run following command:
 ```shell
 bin/emqttd_ctl plugins load emq_lua_hook
 ```
+
 
 ## NOTE
 
