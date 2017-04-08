@@ -227,6 +227,64 @@ This API exports hook(s) implemented in its lua script.
 
 
 
+# example code
+
+```lua
+function on_message_publish(topic, payload, qos, retain)
+    return topic, "hello", qos, retain
+end
+
+function register_hook()
+    return "on_message_publish"
+end
+```
+
+Save this script as example.lua in hook_lua directory. emq-lua-hook will load it automatically during bootstrap. 
+
+
+# management command
+
+## load
+
+```shell
+emqttd_ctl luahook load script_name
+```
+This command will load lua file "script_name.lua" in hook_lua directory, into emqttd hook.
+
+## unload
+
+```shell
+emqttd_ctl luahook unload script_name
+```
+This command will unload lua file "script_name.lua" out of emqttd hook.
+
+## reload
+
+```shell
+emqttd_ctl luahook reload script_name
+```
+This command will reload lua file "script_name.lua" in hook_lua. It is useful if a lua script has been modified and apply it immediately.
+
+## enable
+
+```shell
+emqttd_ctl luahook enable script_name
+```
+This command will rename lua file "script_name.lua.x" to "script_name.lua", and load it immediately.
+
+## disable
+
+```shell
+emqttd_ctl luahook disable script_name
+```
+This command will unload this script, and rename lua file "script_name.lua" to "script_name.lua.x", which will not be loaded during next boot.
+
+
+
+
+
+
+
 License
 -------
 
