@@ -20,14 +20,18 @@
 
 -behaviour(gen_server).
 
--export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2,
-    terminate/2, code_change/3]).
+-export([start_link/0, init/1, handle_call/3, handle_cast/2,
+         handle_info/2, terminate/2, code_change/3]).
 -export([stop/0, loadall/0, unloadall/0, load/1, unload/1]).
+-export([load_cmd/0, cmd/1, unload_cmd/0]).
 
 -include("emq_lua_hook.hrl").
 
--define(LUA_DIR, "hook_lua").
--define(LUA_WILD, ?LUA_DIR++"/*.lua").
+-define(LUA_DIR, "hook_lua/").
+-define(LUA_WILD, ?LUA_DIR++"*.lua").
+-define(PRINT(Format, Args), io:format(Format, Args)).
+-define(PRINT_CMD(Cmd, Descr), io:format("~-48s# ~s~n", [Cmd, Descr])).
+-define(USAGE(CmdList), [?PRINT_CMD(Cmd, Descr) || {Cmd, Descr} <- CmdList]).
 
 -record(state, {loaded_scripts = []}).
 
@@ -53,6 +57,56 @@ load(ScriptName) ->
 unload(ScriptName) ->
     gen_server:call(?MODULE, {unload, ScriptName}).
 
+load_cmd() ->
+    emqttd_ctl:register_cmd(luahook, {?MODULE, cmd}, []).
+
+unload_cmd() ->
+    emqttd_ctl:unregister_cmd(luahook).
+
+cmd(["load", Script]) ->
+    case load(fullname(Script)) of
+        ok -> ?PRINT("success to load ~p~n", [Script]);
+        error -> ?PRINT("fail to load ~p~n", [Script])
+    end;
+
+cmd(["reload", Script]) ->
+    FullName = fullname(Script),
+    unload(FullName),
+    case load(FullName) of
+        ok -> ?PRINT("success to reload ~p~n", [Script]);
+        error -> ?PRINT("fail to reload ~p~n", [Script])
+    end;
+
+cmd(["unload", Script]) ->
+    unload(fullname(Script)),
+    ?PRINT("success to load ~p~n", [Script]);
+
+cmd(["enable", Script]) ->
+    FullName = fullname(Script),
+    case file:rename(fullnamedisable(Script), FullName) of
+        ok ->
+            case load(FullName) of
+                ok -> ?PRINT("success to load ~p~n", [Script]);
+                error -> ?PRINT("fail to load ~p~n", [Script])
+            end;
+        {error, Reason} -> ?PRINT("fail to enable ~p due to ~p~n", [Script, Reason])
+    end;
+
+cmd(["disable", Script]) ->
+    FullName = fullname(Script),
+    unload(FullName),
+    case file:rename(FullName, fullnamedisable(Script)) of
+        ok -> ?PRINT("success to disable ~p~n", [Script]);
+        {error, Reason} -> ?PRINT("fail to disable ~p due to ~p~n", [Script, Reason])
+    end;
+
+cmd(_) ->
+    ?USAGE([{"luahook load script",          "load lua script into hook"},
+        {"luahook unload script",       "unload lua script from hook"},
+        {"luahook reload script",        "reload lua script into hook"},
+        {"luahook enable script",      "enable lua script and load it into hook"},
+        {"luahook disable script",      "unload lua script out of hook and disable it"}]).
+
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
@@ -71,15 +125,15 @@ handle_call(unloadall, _From, State=#state{loaded_scripts = Scripts}) ->
     {reply, ok, State#state{loaded_scripts = []}, hibernate};
 
 handle_call({load, ScriptName}, _From, State=#state{loaded_scripts = Scripts}) ->
-    NewScripts =    case do_load(ScriptName) of
-                        error -> Scripts;
-                        ScriptName ->
-                            case lists:member(ScriptName, Scripts) of
-                                true -> Scripts;
-                                false -> lists:append([ScriptName], Scripts)
-                            end
-                    end,
-    {reply, ok, State#state{loaded_scripts = NewScripts}, hibernate};
+    {Ret, NewScripts} = case do_load(ScriptName) of
+                            error -> {error, Scripts};
+                            ScriptName ->
+                                case lists:member(ScriptName, Scripts) of
+                                    true -> {ok, Scripts};
+                                    false -> {ok, lists:append([ScriptName], Scripts)}
+                                end
+                        end,
+    {reply, Ret, State#state{loaded_scripts = NewScripts}, hibernate};
 
 handle_call({unload, ScriptName}, _From, State=#state{loaded_scripts = Scripts}) ->
     do_unload(ScriptName),   % Unload first! If this gen_server has been crashed, loaded_scripts will be empty
@@ -176,4 +230,7 @@ do_unloadall(Scripts) ->
 do_unload(ScriptName) ->
     emq_lua_script:unregister_hooks(ScriptName).
 
-
+fullname(Script) ->
+    ?LUA_DIR++Script++".lua".
+fullnamedisable(Script) ->
+    fullname(Script)++".x".
