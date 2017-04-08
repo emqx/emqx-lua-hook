@@ -115,7 +115,7 @@ case11(_Config) ->
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
     Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
-            "\n    return topic, \"hello\", qos, retain"
+            "\n    return 0"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -136,7 +136,7 @@ case12(_Config) ->
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
     Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
-            "\n    return false"     % return false to stop hook
+            "\n    return false"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -178,8 +178,8 @@ case21(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_message_acked(topic, payload, qos, retain)"
-            "\n    return topic, \"hello\", qos, retain"
+    Code =    "function on_message_acked(ClientId, Username, Topic, Payload, Qos, Retain)"
+            "\n    return 0"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -189,7 +189,7 @@ case21(_Config) ->
     emq_lua_hook_cli:start_link(),
     emq_lua_hook_cli:loadall(),
     Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqttd_hooks:run('message.delivered',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    Ret = emqttd_hooks:run('message.acked',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
     ?assertEqual({ok, Msg}, Ret),
     emq_lua_hook_cli:stop(),
     ok = file:delete(ScriptName).
@@ -210,7 +210,7 @@ case22(_Config) ->
     emq_lua_hook_cli:start_link(),
     emq_lua_hook_cli:loadall(),
     Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqttd_hooks:run('message.delivered',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    Ret = emqttd_hooks:run('message.acked',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
     ?assertEqual({ok, Msg}, Ret),
     emq_lua_hook_cli:stop(),
     ok = file:delete(ScriptName).
@@ -231,7 +231,7 @@ case23(_Config) ->
     emq_lua_hook_cli:start_link(),
     emq_lua_hook_cli:loadall(),
     Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqttd_hooks:run('message.delivered',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    Ret = emqttd_hooks:run('message.acked',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
     ?assertEqual({ok, Msg}, Ret),
     emq_lua_hook_cli:stop(),
     ok = file:delete(ScriptName).
@@ -424,11 +424,8 @@ case61(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_client_disconnected(ClientId, Username, Topic)"
-            "\n    if Topic == \"a/b/c\" then"
-            "\n        Topic = \"a1/b1/c1\";"
-            "\n    end"
-            "\n    return Topic"
+    Code =    "function on_client_disconnected(ClientId, UserName, Error)"
+            "\n    return 0"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -449,7 +446,7 @@ case62(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_client_disconnected(ClientId, Username, Topic)"
+    Code =    "function on_client_disconnected(ClientId, UserName, Error)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"

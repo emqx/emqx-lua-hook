@@ -1,6 +1,229 @@
 
-emq-lua-hook
-=========
+# emq-lua-hook
+
+This plugin make it possible to write hooks in lua scripts.
+
+Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl) which supports Lua 5.2. Following features may not work properly:
+* label and goto
+* tail-call optimisation in return
+* only limited standard libraries
+* proper handling of __metatable
+
+For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl). 
+
+Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.  
+
+
+
+# Hook API
+
+## on_message_publish
+
+```lua
+function on_message_publish(topic, payload, qos, retain)
+    -- do your job here 
+    if some_condition then
+        return new_topic, new_payload, new_qos, new_retain
+    else
+        return false
+    end
+end
+```
+This API is called before publishing message into mqtt engine. It's possible to change message or cancel publish in this API.
+
+### Input
+* topic :   a string, mqtt message's topic
+* payload :  a string, mqtt message's payload
+* qos :     a number, mqtt message's QOS (0, 1, 2)
+* retain :   a boolean, mqtt message's retain flag
+### Output
+* new_topic :   a string, change mqtt message's topic
+* new_payload :  a string, change mqtt message's payload
+* new_qos :      a number, change mqtt message's QOS
+* new_retain :   a boolean, change mqtt message's retain flag
+* false :        cancel publishing this mqtt message
+
+## on_message_delivered 
+
+```lua
+function on_message_delivered(ClientId, Username, topic, payload, qos, retain)
+    -- do your job here 
+    return 0
+```
+This API is called after a message has been pushed to mqtt clients.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* topic :   a string, mqtt message's topic
+* payload :  a string, mqtt message's payload
+* qos :     a number, mqtt message's QOS (0, 1, 2)
+* retain :   a boolean, mqtt message's retain flag
+### Output
+* always be 0
+
+## on_message_acked
+
+```lua
+function on_message_acked(ClientId, Username, Topic, Payload, Qos, Retain)
+    return 0
+end"
+```
+This API is called after a message has been acknowledged.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* topic :   a string, mqtt message's topic
+* payload :  a string, mqtt message's payload
+* qos :     a number, mqtt message's QOS (0, 1, 2)
+* retain :   a boolean, mqtt message's retain flag
+### Output
+* always be 0
+
+
+## on_client_connected
+
+```lua
+function on_client_connected(ClientId, UserName, ReturnCode)
+    return 0
+nend
+```
+This API is called after a mqtt client has establish a connection with broker.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* ReturnCode :   a number, has following values
+    - 0 : Connection accepted
+    - 1 : Unacceptable protocol version
+    - 2 : Client Identifier is correct UTF-8 but not allowed by the Server
+    - 3 : Server unavailable
+    - 4 : Username or password is malformed
+    - 5 : Client is not authorized to connect
+### Output
+* always be 0
+
+
+## on_client_subscribe
+
+```lua
+function on_client_subscribe(ClientId, Username, Topic)
+    -- do your job here
+    if some_condition then
+        return new_topic
+    else
+        return false
+    end
+end
+```
+This API is called before mqtt engine process client's subscribe command. It is possible to change topic or cancel it.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* Topic :   a string, mqtt message's topic
+### Output
+* new_topic :   a string, change mqtt message's topic
+* false :    cancel subscription
+
+
+## on_client_unsubscribe
+
+```lua
+ function on_client_unsubscribe(ClientId, Username, Topic)
+    -- do your job here
+    if some_condition then
+        return new_topic
+    else
+        return false
+    end
+end
+```
+This API is called before mqtt engine process client's unsubscribe command. It is possible to change topic or cancel it.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* Topic :   a string, mqtt message's topic
+### Output
+* new_topic :   a string, change mqtt message's topic
+* false :    cancel unsubscription
+
+
+## on_client_disconnected
+
+```lua
+function on_client_disconnected(ClientId, Username, Error)
+    return 0
+end
+```
+This API is called after a mqtt client has disconnected.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* Error :   a string, denote the disconnection reason.
+### Output
+* always be 0.
+
+
+## on_session_subscribed
+
+```lua
+function on_session_subscribed(ClientId, Username, Topic)
+    return 0
+end
+```
+This API is called after a subscription has been done.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* Topic :   a string, mqtt's topic filter.
+### Output
+* always be 0.
+
+
+## on_session_unsubscribed
+
+```lua
+function on_session_unsubscribed(ClientId, Username, Topic)
+    return 0
+end
+```
+This API is called after a unsubscription has been done.
+
+### Input
+* ClientId : a string, mqtt client id.
+* Username : a string mqtt username
+* Topic :   a string, mqtt's topic filter.
+### Output
+* always be 0.
+
+
+## register_hook
+```lua
+function register_hook()
+    return "hook_name"
+end
+
+function register_hook()
+    return "hook_name1", "hook_name2", ... , "hook_nameX"
+end
+```
+This API exports hook(s) implemented in its lua script. 
+### Output
+* hook_name must be a string, which is equal to the hook API(s) implemented. Possible values:
+ - "on_message_publish"
+ - "on_message_delivered"
+ - "on_message_acked"
+ - "on_client_connected"
+ - "on_client_subscribe"
+ - "on_client_unsubscribe"
+ - "on_client_disconnected"
+ - "on_session_subscribed"
+ - "on_session_unsubscribed"
 
 
 
