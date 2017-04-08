@@ -34,7 +34,7 @@ all() ->
         case71, case72, case73,
         case81, case82, case83,
         case101, case102,
-        case110, case111, case112, case113, case114,
+        case110, case111, case112, case113, case114, case115,
         case201, case202, case203
     ].
 
@@ -114,7 +114,7 @@ case11(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_message_delivered(topic, payload, qos, retain)"
+    Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
             "\n    return topic, \"hello\", qos, retain"
             "\nend"
             "\n"
@@ -135,7 +135,7 @@ case12(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_message_delivered(topic, payload, qos, retain)"
+    Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
             "\n    return false"     % return false to stop hook
             "\nend"
             "\n"
@@ -156,7 +156,7 @@ case13(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqttd_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_message_delivered(topic, payload, qos, retain)"
+    Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -664,6 +664,9 @@ case110(_Config) ->
     application:stop(emq_lua_hook),
     timer:sleep(700).
 
+
+
+
 case111(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
     ScriptName = "hook_lua/abc.lua",
@@ -711,8 +714,6 @@ case112(_Config) ->
     ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
     application:stop(emq_lua_hook),
     timer:sleep(700).
-
-
 
 case113(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -763,6 +764,39 @@ case114(_Config) ->
     ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
     application:stop(emq_lua_hook),
     timer:sleep(700).
+
+
+case115(_Config) ->
+    ok = filelib:ensure_dir("hook_lua/a"),
+    ScriptName = "hook_lua/abc.lua",
+    Code =    "function on_message_publish(topic, payload, qos, retain)"
+            "\n    return \"changed/topic\", \"hello\", qos, retain"
+            "\nend"
+            "\n"
+            "function on_client_subscribe(ClientId, Username, Topic)"
+            "\n    return \"play/football\""
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_message_publish\", \"on_client_subscribe\""
+            "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqttd_hooks:start_link(),
+    emqttd_ctl:start_link(),
+    {ok,_} = application:ensure_all_started(emq_lua_hook),
+
+    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqttd_hooks:run('message.publish',[], Msg),
+    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+
+    TopicTable = [{<<"d/+/e">>, [{qos, 2}]}],
+    Ret2 = emqttd_hooks:run('client.subscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    ?assertEqual({ok, [{<<"play/football">>, [{qos, 2}]}]}, Ret2),
+
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
+
 
 case201(_Config) ->
     ScriptName = "hook_lua/abc.lua",
