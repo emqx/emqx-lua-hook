@@ -27,9 +27,12 @@
 start(_Type, _Args) ->
     Ret = emq_lua_hook_sup:start_link(),
     emq_lua_hook_cli:loadall(),
+    emq_lua_hook_cli:load_cmd(),
     Ret.
 
 stop(_State) ->
+    emq_lua_hook_cli:unloadall(),
+    emq_lua_hook_cli:unload_cmd(),
     ok.
 
 

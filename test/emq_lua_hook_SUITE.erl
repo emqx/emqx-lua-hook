@@ -22,6 +22,7 @@
 -include_lib("emqttd/include/emqttd.hrl").
 -include_lib("emqttd/include/emqttd_protocol.hrl").
 
+
 all() ->
     [   case01, case02, case03,
         case11, case12, case13,
@@ -33,6 +34,7 @@ all() ->
         case71, case72, case73,
         case81, case82, case83,
         case101, case102,
+        case110, case111, case112, case113, case114,
         case201, case202, case203
     ].
 
@@ -638,9 +640,125 @@ case102(_Config) ->
     {ok,_} = application:ensure_all_started(emq_lua_hook),
     timer:sleep(500),
     true = is_process_alive(whereis(emq_lua_hook_cli)),
-    application:stop(emq_lua_hook).
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
+
+case110(_Config) ->
+    ok = filelib:ensure_dir("hook_lua/a"),
+    ScriptName = "hook_lua/abc.lua",
+    Code =    "function on_message_publish(topic, payload, qos, retain)"
+            "\n    return \"changed/topic\", \"hello\", qos, retain"
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_message_publish\""
+            "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqttd_hooks:start_link(),
+    emqttd_ctl:start_link(),
+    {ok,_} = application:ensure_all_started(emq_lua_hook),
+    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqttd_hooks:run('message.publish',[], Msg),
+    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
+
+case111(_Config) ->
+    ok = filelib:ensure_dir("hook_lua/a"),
+    ScriptName = "hook_lua/abc.lua",
+    Code =    "function on_message_publish(topic, payload, qos, retain)"
+            "\n    return \"changed/topic\", \"hello\", qos, retain"
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_message_publish\""
+            "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqttd_hooks:start_link(),
+    emqttd_ctl:start_link(),
+    {ok,_} = application:ensure_all_started(emq_lua_hook),
+    emqttd_ctl:run(["luahook", "unload", "abc"]),
+    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqttd_hooks:run('message.publish',[], Msg),
+    ?assertEqual({ok, Msg}, Ret),
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
 
 
+
+case112(_Config) ->
+    ok = filelib:ensure_dir("hook_lua/a"),
+    ScriptName = "hook_lua/abc.lua",
+    Code =    "function on_message_publish(topic, payload, qos, retain)"
+            "\n    return \"changed/topic\", \"hello\", qos, retain"
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_message_publish\""
+            "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqttd_hooks:start_link(),
+    emqttd_ctl:start_link(),
+    {ok,_} = application:ensure_all_started(emq_lua_hook),
+    emqttd_ctl:run(["luahook", "unload", "abc"]),
+    timer:sleep(100),
+    emqttd_ctl:run(["luahook", "load", "abc"]),
+    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqttd_hooks:run('message.publish',[], Msg),
+    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
+
+
+
+case113(_Config) ->
+    ok = filelib:ensure_dir("hook_lua/a"),
+    ScriptName = "hook_lua/abc.lua",
+    Code =    "function on_message_publish(topic, payload, qos, retain)"
+                "\n    return \"changed/topic\", \"hello\", qos, retain"
+                "\nend"
+                "\n"
+                "\nfunction register_hook()"
+                "\n    return \"on_message_publish\""
+                "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqttd_hooks:start_link(),
+    emqttd_ctl:start_link(),
+    {ok,_} = application:ensure_all_started(emq_lua_hook),
+    emqttd_ctl:run(["luahook", "disable", "abc"]),
+    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqttd_hooks:run('message.publish',[], Msg),
+    ?assertEqual({ok, Msg}, Ret),
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
+
+
+
+case114(_Config) ->
+    ok = filelib:ensure_dir("hook_lua/a"),
+    ScriptName = "hook_lua/abc.lua.x",   % disabled script
+    Code =    "function on_message_publish(topic, payload, qos, retain)"
+            "\n    return \"changed/topic\", \"hello\", qos, retain"
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_message_publish\""
+            "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqttd_hooks:start_link(),
+    emqttd_ctl:start_link(),
+    {ok,_} = application:ensure_all_started(emq_lua_hook),
+    emqttd_ctl:run(["luahook", "enable", "abc"]),
+    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqttd_hooks:run('message.publish',[], Msg),
+    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    application:stop(emq_lua_hook),
+    timer:sleep(700).
 
 case201(_Config) ->
     ScriptName = "hook_lua/abc.lua",

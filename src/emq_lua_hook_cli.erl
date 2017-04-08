@@ -79,15 +79,15 @@ cmd(["reload", Script]) ->
 
 cmd(["unload", Script]) ->
     unload(fullname(Script)),
-    ?PRINT("success to load ~p~n", [Script]);
+    ?PRINT("success to unload ~p~n", [Script]);
 
 cmd(["enable", Script]) ->
     FullName = fullname(Script),
     case file:rename(fullnamedisable(Script), FullName) of
         ok ->
             case load(FullName) of
-                ok -> ?PRINT("success to load ~p~n", [Script]);
-                error -> ?PRINT("fail to load ~p~n", [Script])
+                ok -> ?PRINT("success to enable ~p~n", [Script]);
+                error -> ?PRINT("fail to enable ~p~n", [Script])
             end;
         {error, Reason} -> ?PRINT("fail to enable ~p due to ~p~n", [Script, Reason])
     end;
@@ -101,10 +101,10 @@ cmd(["disable", Script]) ->
     end;
 
 cmd(_) ->
-    ?USAGE([{"luahook load script",          "load lua script into hook"},
+    ?USAGE([{"luahook load script",     "load lua script into hook"},
         {"luahook unload script",       "unload lua script from hook"},
-        {"luahook reload script",        "reload lua script into hook"},
-        {"luahook enable script",      "enable lua script and load it into hook"},
+        {"luahook reload script",       "reload lua script into hook"},
+        {"luahook enable script",       "enable lua script and load it into hook"},
         {"luahook disable script",      "unload lua script out of hook and disable it"}]).
 
 %% ------------------------------------------------------------------
