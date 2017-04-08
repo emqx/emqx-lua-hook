@@ -18,9 +18,9 @@ bin/emqttd_ctl plugins load emq_lua_hook
 
 ## NOTE
 
-Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.
-
-It's hard to debug lua script in emqttd environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory. 
+* Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.
+* It's hard to debug lua script in emqttd environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory.
+* Global variable will lost its value for each call. Do NOT use global variable in lua scripts.
 
 
 # Hook API
