@@ -717,6 +717,7 @@ case112(_Config) ->
 case113(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
     ScriptName = "hook_lua/abc.lua",
+    ScriptDisabled = ScriptName ++ ".x",
     Code =    "function on_message_publish(topic, payload, qos, retain)"
                 "\n    return \"changed/topic\", \"hello\", qos, retain"
                 "\nend"
@@ -725,15 +726,18 @@ case113(_Config) ->
                 "\n    return \"on_message_publish\""
                 "\nend",
     ok = file:write_file(ScriptName, Code),
+    file:delete(ScriptDisabled),
 
     emqttd_hooks:start_link(),
     emqttd_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emq_lua_hook),
-    emqttd_ctl:run(["luahook", "disable", "abc"]),
+    emqttd_ctl:run(["luahook", "disable", "abc"]),   % this command will rename "abc.lua" to "abc.lua.x"
     Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqttd_hooks:run('message.publish',[], Msg),
     ?assertEqual({ok, Msg}, Ret),
     application:stop(emq_lua_hook),
+    true = filelib:is_file(ScriptDisabled),
+    file:delete(ScriptDisabled),
     timer:sleep(700).
 
 
