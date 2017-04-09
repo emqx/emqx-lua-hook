@@ -209,21 +209,9 @@ on_message_publish(Message = #mqtt_message{from = {ClientId, Username}, qos = Qo
             ?LOG(error, "Topic=~p, lua function on_message_publish caught exception, ~p", [Topic, Other]),
             {ok, Message}
     end;
-on_message_publish(Message = #mqtt_message{from = Internal, qos = Qos,
-                                            retain = Retain, topic = Topic, payload = Payload},
-                    LuaState) ->
-    ?LOG(debug, "hook message publish ~s~n", [emqttd_message:format(Message)]),
-    case catch luerl:call_function([on_message_publish], [Internal, ?EMPTY_USERNAME, Topic, Payload, Qos, Retain], LuaState) of
-        {[false], _St} ->
-            {stop, Message};
-        {[Newtopic, NewPayload, NewQos, NewRetain], _St} ->
-            ?LOG(debug, "lua function on_message_publish() return ~p", [{Newtopic, NewPayload, NewQos, NewRetain}]),
-            {ok, Message#mqtt_message{topic = Newtopic, payload = NewPayload,
-                qos = round(NewQos), retain = to_retain(NewRetain)}};
-        Other ->
-            ?LOG(error, "Topic=~p, lua function on_message_publish caught exception, ~p", [Topic, Other]),
-            {ok, Message}
-    end.
+on_message_publish(Message = #mqtt_message{from = Internal}, LuaState) ->
+    {Status, NewMsg} = on_message_publish(Message#mqtt_message{from={Internal, ?EMPTY_USERNAME}}, LuaState),
+    {Status, NewMsg#mqtt_message{from=Internal}}.
 
 on_message_delivered(_ClientId, _Username, #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
