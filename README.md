@@ -33,7 +33,7 @@ bin/emqttd_ctl plugins load emq_lua_hook
 ## on_message_publish
 
 ```lua
-function on_message_publish(topic, payload, qos, retain)
+function on_message_publish(clientid, username, topic, payload, qos, retain)
     -- do your job here 
     if some_condition then
         return new_topic, new_payload, new_qos, new_retain
@@ -45,6 +45,8 @@ end
 This API is called before publishing message into mqtt engine. It's possible to change message or cancel publish in this API.
 
 ### Input
+* clientid : a string, mqtt client id.
+* username : a string, mqtt username
 * topic :   a string, mqtt message's topic
 * payload :  a string, mqtt message's payload
 * qos :     a number, mqtt message's QOS (0, 1, 2)
