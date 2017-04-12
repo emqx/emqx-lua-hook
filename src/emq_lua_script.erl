@@ -36,7 +36,7 @@
 
 -include("emq_lua_hook.hrl").
 
-
+-define(EMPTY_USERNAME, "").
 
 -define(HOOK_ADD(A, B, C),      emqttd_hooks:add(A, B, C)).
 -define(HOOK_DEL(A, B),         emqttd_hooks:delete(A, B)).
@@ -194,19 +194,27 @@ on_session_unsubscribed(ClientId, Username, TopicItem = {Topic, _Opts}, LuaState
 on_message_publish(Message = #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     {ok, Message};
-on_message_publish(Message = #mqtt_message{qos = Qos, retain = Retain, topic = Topic, payload = Payload}, LuaState) ->
+on_message_publish(Message = #mqtt_message{from = {ClientId, Username},
+                                             qos = Qos,
+                                             retain = Retain,
+                                             topic = Topic,
+                                             payload = Payload},
+                   LuaState) ->
     ?LOG(debug, "hook message publish ~s~n", [emqttd_message:format(Message)]),
-    case catch luerl:call_function([on_message_publish], [Topic, Payload, Qos, Retain], LuaState) of
+    case catch luerl:call_function([on_message_publish], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {[false], _St} ->
             {stop, Message};
-        {[Newtopic, NewPayload, NewQos, NewRetain], _St} ->
-            ?LOG(debug, "lua function on_message_publish() return ~p", [{Newtopic, NewPayload, NewQos, NewRetain}]),
-            {ok, Message#mqtt_message{topic = Newtopic, payload = NewPayload,
+        {[NewTopic, NewPayload, NewQos, NewRetain], _St} ->
+            ?LOG(debug, "lua function on_message_publish() return ~p", [{NewTopic, NewPayload, NewQos, NewRetain}]),
+            {ok, Message#mqtt_message{topic = NewTopic, payload = NewPayload,
                                         qos = round(NewQos), retain = to_retain(NewRetain)}};
         Other ->
             ?LOG(error, "Topic=~p, lua function on_message_publish caught exception, ~p", [Topic, Other]),
             {ok, Message}
-    end.
+    end;
+on_message_publish(Message = #mqtt_message{from = Internal}, LuaState) ->
+    {Status, NewMsg} = on_message_publish(Message#mqtt_message{from={Internal, ?EMPTY_USERNAME}}, LuaState),
+    {Status, NewMsg#mqtt_message{from=Internal}}.
 
 on_message_delivered(_ClientId, _Username, #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
