@@ -177,18 +177,18 @@ do_load(FileName) ->
         {_Ret, St0} ->
             case catch luerl:call_function([register_hook], [], St0) of
                 {'EXIT', _St1} ->
-                    ?LOG(error, "fail to load lua script ~p, which has syntax error", [FileName]),
+                    ?LOG(error, "Failed to load lua script ~p, which has syntax error", [FileName]),
                     error;
                 {Ret1, St1} ->
-                    ?LOG(debug, "register lua script ~p", [FileName]),
+                    ?LOG(debug, "Register lua script ~p", [FileName]),
                     do_register_hooks(Ret1, St1, FileName),
                     FileName;
                 Other ->
-                    ?LOG(error, "fail to load lua script ~p, register_hook() raise exception ~p", [FileName, Other]),
+                    ?LOG(error, "Failed to load lua script ~p, register_hook() raise exception ~p", [FileName, Other]),
                     error
             end;
         Exception ->
-            ?LOG(error, "fail to load lua script ~p with error ~p", [FileName, Exception]),
+            ?LOG(error, "Failed to load lua script ~p with error ~p", [FileName, Exception]),
             error
     end.
 
