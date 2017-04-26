@@ -245,7 +245,7 @@ This API exports hook(s) implemented in its lua script.
 # example code
 
 ```lua
-function on_message_publish(topic, payload, qos, retain)
+function on_message_publish(clientid, username, topic, payload, qos, retain)
     return topic, "hello", qos, retain
 end
 
