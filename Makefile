@@ -4,7 +4,7 @@ PROJECT_VERSION = 2.2
 
 DEPS = lager luerl
 dep_lager    = git https://github.com/basho/lager
-dep_luerl    = git https://github.com/rvirding/luerl
+dep_luerl    = git https://github.com/grutabow/luerl
 
 BUILD_DEPS = emqttd cuttlefish
 dep_emqttd = git https://github.com/emqtt/emqttd emq22
