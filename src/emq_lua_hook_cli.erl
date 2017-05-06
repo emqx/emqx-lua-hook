@@ -26,6 +26,7 @@
 -export([load_cmd/0, cmd/1, unload_cmd/0]).
 
 -include("emq_lua_hook.hrl").
+-include_lib("luerl/src/luerl.hrl").
 
 -define(LUA_DIR, "hook_lua/").
 -define(LUA_WILD, ?LUA_DIR++"*.lua").
@@ -177,7 +178,7 @@ do_load(FileName) ->
         {'EXIT', St00} ->
             ?LOG(error, "Failed to load lua script ~p due to error ~p", [FileName, St00]),
             error;
-        {_Ret, St0} ->
+        {_Ret, St0=#luerl{}} ->
             case catch luerl:call_function([register_hook], [], St0) of
                 {'EXIT', St1} ->
                     ?LOG(error, "Failed to execute register_hook function in lua script ~p, which has syntax error, St1=~p", [FileName, St1]),
