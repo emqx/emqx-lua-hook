@@ -13,6 +13,8 @@ dep_cuttlefish = git https://github.com/emqtt/cuttlefish
 ERLC_OPTS += +'{parse_transform, lager_transform}'
 TEST_ERLC_OPTS += +'{parse_transform, lager_transform}'
 
+NO_AUTOPATCH = luerl
+
 include erlang.mk
 
 app.config::
