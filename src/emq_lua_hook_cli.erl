@@ -102,11 +102,11 @@ cmd(["disable", Script]) ->
     end;
 
 cmd(_) ->
-    ?USAGE([{"luahook load script",     "load lua script into hook"},
-        {"luahook unload script",       "unload lua script from hook"},
-        {"luahook reload script",       "reload lua script into hook"},
-        {"luahook enable script",       "enable lua script and load it into hook"},
-        {"luahook disable script",      "unload lua script out of hook and disable it"}]).
+    ?USAGE([{"luahook load <Script>",     "load lua script into hook"},
+        {"luahook unload <Script>",       "unload lua script from hook"},
+        {"luahook reload <Script>",       "reload lua script into hook"},
+        {"luahook enable <Script>",       "enable lua script and load it into hook"},
+        {"luahook disable <Script>",      "unload lua script out of hook and disable it"}]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
