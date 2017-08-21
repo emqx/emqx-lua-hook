@@ -28,6 +28,45 @@ bin/emqttd_ctl plugins load emq_lua_hook
 * Global variable will lost its value for each call. Do NOT use global variable in lua scripts.
 
 
+
+# Example
+
+Suppose your emqttd is installed in /emqttd, and the lua script directory should be /emqttd/hook_lua.
+
+Make a new file called "test.lua" and put following code into this file:
+
+```lua
+function on_message_publish(clientid, username, topic, payload, qos, retain)
+    return topic, "hello", qos, retain
+end
+
+function register_hook()
+    return "on_message_publish"
+end
+```
+
+Execute following command to start emq-lua-hook and load scripts in hook_lua directory.
+
+```
+/emqttd/bin/emqttd_ctl plugins load emq_lua_hook
+```
+
+Now let's take a look at what will happend.
+
+- Start a mqtt client, such as mqtt.fx. 
+- Subscribe a topic="a/b".
+- Send a message, topic="a/b", payload="123"
+- Subscriber will get a message with topic="a/b" and payload="hello". test.lua modifies the payload.
+
+If there are "test1.lua", "test2.lua" and "test3.lua" in /emqttd/hook_lua, all these files will be loaded once emq-lua-hook get started.
+
+If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or execute following command to reload test2.lua only:
+```
+/emqttd/bin/emqttd_ctl luahook reload test2.lua
+```
+
+
+
 # Hook API
 
 ## on_message_publish
@@ -241,20 +280,6 @@ This API exports hook(s) implemented in its lua script.
  - "on_session_unsubscribed"
 
 
-
-# example code
-
-```lua
-function on_message_publish(clientid, username, topic, payload, qos, retain)
-    return topic, "hello", qos, retain
-end
-
-function register_hook()
-    return "on_message_publish"
-end
-```
-
-Save this script as example.lua in hook_lua directory. emq-lua-hook will load it automatically during bootstrap. 
 
 
 # management command
