@@ -14,19 +14,18 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emq_lua_hook_cli).
-
--author("Feng Lee <feng@emqtt.io>").
+-module(emqx_lua_hook_cli).
 
 -behaviour(gen_server).
+
+-include("emqx_lua_hook.hrl").
+
+-include_lib("luerl/src/luerl.hrl").
 
 -export([start_link/0, init/1, handle_call/3, handle_cast/2,
          handle_info/2, terminate/2, code_change/3]).
 -export([stop/0, loadall/0, unloadall/0, load/1, unload/1]).
 -export([load_cmd/0, cmd/1, unload_cmd/0]).
-
--include("emq_lua_hook.hrl").
--include_lib("luerl/src/luerl.hrl").
 
 -define(LUA_DIR, "hook_lua/").
 -define(LUA_WILD, ?LUA_DIR++"*.lua").
@@ -59,10 +58,10 @@ unload(ScriptName) ->
     gen_server:call(?MODULE, {unload, ScriptName}).
 
 load_cmd() ->
-    emqttd_ctl:register_cmd(luahook, {?MODULE, cmd}, []).
+    emqx_ctl:register_cmd(luahook, {?MODULE, cmd}, []).
 
 unload_cmd() ->
-    emqttd_ctl:unregister_cmd(luahook).
+    emqx_ctl:unregister_cmd(luahook).
 
 cmd(["load", Script]) ->
     case load(fullname(Script)) of
@@ -198,23 +197,23 @@ do_load(FileName) ->
 
 
 do_register(<<"on_message_publish">>, St, ScriptName) ->
-    emq_lua_script:register_on_message_publish(ScriptName, St);
+    emqx_lua_script:register_on_message_publish(ScriptName, St);
 do_register(<<"on_message_delivered">>, St, ScriptName) ->
-    emq_lua_script:register_on_message_delivered(ScriptName, St);
+    emqx_lua_script:register_on_message_delivered(ScriptName, St);
 do_register(<<"on_message_acked">>, St, ScriptName) ->
-    emq_lua_script:register_on_message_acked(ScriptName, St);
+    emqx_lua_script:register_on_message_acked(ScriptName, St);
 do_register(<<"on_client_connected">>, St, ScriptName) ->
-    emq_lua_script:register_on_client_connected(ScriptName, St);
+    emqx_lua_script:register_on_client_connected(ScriptName, St);
 do_register(<<"on_client_subscribe">>, St, ScriptName) ->
-    emq_lua_script:register_on_client_subscribe(ScriptName, St);
+    emqx_lua_script:register_on_client_subscribe(ScriptName, St);
 do_register(<<"on_client_unsubscribe">>, St, ScriptName) ->
-    emq_lua_script:register_on_client_unsubscribe(ScriptName, St);
+    emqx_lua_script:register_on_client_unsubscribe(ScriptName, St);
 do_register(<<"on_client_disconnected">>, St, ScriptName) ->
-    emq_lua_script:register_on_client_disconnected(ScriptName, St);
+    emqx_lua_script:register_on_client_disconnected(ScriptName, St);
 do_register(<<"on_session_subscribed">>, St, ScriptName) ->
-    emq_lua_script:register_on_session_subscribed(ScriptName, St);
+    emqx_lua_script:register_on_session_subscribed(ScriptName, St);
 do_register(<<"on_session_unsubscribed">>, St, ScriptName) ->
-    emq_lua_script:register_on_session_unsubscribed(ScriptName, St);
+    emqx_lua_script:register_on_session_unsubscribed(ScriptName, St);
 do_register(Hook, _St, ScriptName) ->
     ?LOG(error, "Discard unknown hook ~p ScriptName=~p", [Hook, ScriptName]).
 
@@ -233,9 +232,10 @@ do_unloadall(Scripts) ->
     ok.
 
 do_unload(ScriptName) ->
-    emq_lua_script:unregister_hooks(ScriptName).
+    emqx_lua_script:unregister_hooks(ScriptName).
 
 fullname(Script) ->
     ?LUA_DIR++Script++".lua".
 fullnamedisable(Script) ->
     fullname(Script)++".x".
+

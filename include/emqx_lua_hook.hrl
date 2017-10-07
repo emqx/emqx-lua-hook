@@ -14,27 +14,6 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emq_lua_hook_app).
-
--author("Feng Lee <feng@emqtt.io>").
-
--behaviour(application).
--export([start/2, stop/1]).
-
--define(APP, emq_lua_hook).
-
-
-start(_Type, _Args) ->
-    Ret = emq_lua_hook_sup:start_link(),
-    emq_lua_hook_cli:loadall(),
-    emq_lua_hook_cli:load_cmd(),
-    Ret.
-
-stop(_State) ->
-    emq_lua_hook_cli:unloadall(),
-    emq_lua_hook_cli:unload_cmd(),
-    ok.
-
-
-
+-define(LOG(Level, Format, Args),
+    lager:Level("Lua Hook: " ++ Format, Args)).
 

@@ -1,13 +1,13 @@
-PROJECT = emq_lua_hook
-PROJECT_DESCRIPTION = EMQ hooks in lua
-PROJECT_VERSION = 2.3
+PROJECT = emqx_lua_hook
+PROJECT_DESCRIPTION = EMQ X hooks in lua
+PROJECT_VERSION = 2.4
 
 DEPS = lager luerl
-dep_lager    = git https://github.com/basho/lager
-dep_luerl    = git https://github.com/grutabow/luerl
+dep_lager = git https://github.com/basho/lager
+dep_luerl = git https://github.com/grutabow/luerl
 
-BUILD_DEPS = emqttd cuttlefish
-dep_emqttd = git https://github.com/emqtt/emqttd develop
+BUILD_DEPS = emqx cuttlefish
+dep_emqttd = git https://github.com/emqtt/emqttd X
 dep_cuttlefish = git https://github.com/emqtt/cuttlefish
 
 ERLC_OPTS += +debug_info
@@ -19,5 +19,5 @@ NO_AUTOPATCH = luerl
 include erlang.mk
 
 app.config::
-	./deps/cuttlefish/cuttlefish -l info -e etc/ -c etc/emq_lua_hook.conf -i priv/emq_lua_hook.schema -d data
+	./deps/cuttlefish/cuttlefish -l info -e etc/ -c etc/emqx_lua_hook.conf -i priv/emqx_lua_hook.schema -d data
 

@@ -1,5 +1,5 @@
 
-# emq-lua-hook
+# emqx-lua-hook
 
 This plugin make it possible to write hooks in lua scripts.
 
@@ -13,25 +13,25 @@ For the supported functions, please refer to luerl's [project page](https://gith
 
 Lua scripts are stored in hook_lua directory, and will be loaded automatically. If a script is changed during runtime, it should be reloaded to take effect. 
 
-Each lua script could export several functions binding with emqttd hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.   
+Each lua script could export several functions binding with emqx hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.   
 
 To start this plugin, run following command:
 ```shell
-bin/emqttd_ctl plugins load emq_lua_hook
+bin/emqx_ctl plugins load emq_lua_hook
 ```
 
 
 ## NOTE
 
 * Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.
-* It's hard to debug lua script in emqttd environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory.
+* It's hard to debug lua script in emqx environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory.
 * Global variable will lost its value for each call. Do NOT use global variable in lua scripts.
 
 
 
 # Example
 
-Suppose your emqttd is installed in /emqttd, and the lua script directory should be /emqttd/hook_lua.
+Suppose your emqx is installed in /emqx, and the lua script directory should be /emqx/hook_lua.
 
 Make a new file called "test.lua" and put following code into this file:
 
@@ -48,7 +48,7 @@ end
 Execute following command to start emq-lua-hook and load scripts in hook_lua directory.
 
 ```
-/emqttd/bin/emqttd_ctl plugins load emq_lua_hook
+/emqx/bin/emqx_ctl plugins load emqx_lua_hook
 ```
 
 Now let's take a look at what will happend.
@@ -58,11 +58,11 @@ Now let's take a look at what will happend.
 - Send a message, topic="a/b", payload="123"
 - Subscriber will get a message with topic="a/b" and payload="hello". test.lua modifies the payload.
 
-If there are "test1.lua", "test2.lua" and "test3.lua" in /emqttd/hook_lua, all these files will be loaded once emq-lua-hook get started.
+If there are "test1.lua", "test2.lua" and "test3.lua" in /emqx/hook_lua, all these files will be loaded once emq-lua-hook get started.
 
 If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or execute following command to reload test2.lua only:
 ```
-/emqttd/bin/emqttd_ctl luahook reload test2.lua
+/emqx/bin/emqx_ctl luahook reload test2.lua
 ```
 
 
@@ -287,35 +287,35 @@ This API exports hook(s) implemented in its lua script.
 ## load
 
 ```shell
-emqttd_ctl luahook load script_name
+emqx_ctl luahook load script_name
 ```
-This command will load lua file "script_name.lua" in hook_lua directory, into emqttd hook.
+This command will load lua file "script_name.lua" in hook_lua directory, into emqx hook.
 
 ## unload
 
 ```shell
-emqttd_ctl luahook unload script_name
+emqx_ctl luahook unload script_name
 ```
-This command will unload lua file "script_name.lua" out of emqttd hook.
+This command will unload lua file "script_name.lua" out of emqx hook.
 
 ## reload
 
 ```shell
-emqttd_ctl luahook reload script_name
+emqx_ctl luahook reload script_name
 ```
 This command will reload lua file "script_name.lua" in hook_lua. It is useful if a lua script has been modified and apply it immediately.
 
 ## enable
 
 ```shell
-emqttd_ctl luahook enable script_name
+emqx_ctl luahook enable script_name
 ```
 This command will rename lua file "script_name.lua.x" to "script_name.lua", and load it immediately.
 
 ## disable
 
 ```shell
-emqttd_ctl luahook disable script_name
+emqx_ctl luahook disable script_name
 ```
 This command will unload this script, and rename lua file "script_name.lua" to "script_name.lua.x", which will not be loaded during next boot.
 

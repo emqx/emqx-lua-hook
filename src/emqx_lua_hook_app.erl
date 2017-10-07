@@ -14,20 +14,22 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emq_lua_hook_sup).
+-module(emqx_lua_hook_app).
 
--author("Feng Lee <feng@emqtt.io>").
+-behaviour(application).
 
--behaviour(supervisor).
+-export([start/2, stop/1]).
 
--export([start_link/0, init/1]).
+-define(APP, emqx_lua_hook).
 
--define(CHILD(I), {I, {I, start_link, []}, permanent, infinity, worker, [I]}).
+start(_Type, _Args) ->
+    Ret = emqx_lua_hook_sup:start_link(),
+    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook_cli:load_cmd(),
+    Ret.
 
-start_link() ->
-	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
-
-init(_Args) ->
-    {ok, { {one_for_one, 10, 3600}, [?CHILD(emq_lua_hook_cli)] }}.
-
+stop(_State) ->
+    emqx_lua_hook_cli:unloadall(),
+    emqx_lua_hook_cli:unload_cmd(),
+    ok.
 

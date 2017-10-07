@@ -14,8 +14,17 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
+-module(emqx_lua_hook_sup).
 
+-behaviour(supervisor).
 
--define(LOG(Level, Format, Args),
-    lager:Level("Lua Hook: " ++ Format, Args)).
+-export([start_link/0, init/1]).
+
+-define(CHILD(I), {I, {I, start_link, []}, permanent, infinity, worker, [I]}).
+
+start_link() ->
+	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+init(_Args) ->
+    {ok, { {one_for_one, 10, 3600}, [?CHILD(emqx_lua_hook_cli)] }}.
 

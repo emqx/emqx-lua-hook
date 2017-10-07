@@ -14,9 +14,13 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emq_lua_script).
+-module(emqx_lua_script).
 
--author("Feng Lee <feng@emqtt.io>").
+-include("emqx_lua_hook.hrl").
+
+-include_lib("emqx/include/emqx.hrl").
+
+-include_lib("emqx/include/emqx_protocol.hrl").
 
 -export([register_on_message_publish/2,     register_on_client_connected/2,
         register_on_client_disconnected/2,  register_on_client_subscribe/2,
@@ -30,19 +34,10 @@
         on_client_disconnected/3,   on_session_subscribed/4,
         on_session_unsubscribed/4]).
 
-
--include_lib("emqttd/include/emqttd.hrl").
--include_lib("emqttd/include/emqttd_protocol.hrl").
-
--include("emq_lua_hook.hrl").
-
 -define(EMPTY_USERNAME, "").
 
--define(HOOK_ADD(A, B, C),      emqttd_hooks:add(A, B, C)).
--define(HOOK_DEL(A, B),         emqttd_hooks:delete(A, B)).
-
-
-
+-define(HOOK_ADD(A, B, C),      emqx_hooks:add(A, B, C)).
+-define(HOOK_DEL(A, B),         emqx_hooks:delete(A, B)).
 
 register_on_message_publish(ScriptName, LuaState) ->
     ?HOOK_ADD('message.publish', {ScriptName, fun ?MODULE:on_message_publish/2}, [LuaState]).
@@ -200,7 +195,7 @@ on_message_publish(Message = #mqtt_message{from = {ClientId, Username},
                                              topic = Topic,
                                              payload = Payload},
                    LuaState) ->
-    ?LOG(debug, "hook message publish ~s~n", [emqttd_message:format(Message)]),
+    ?LOG(debug, "hook message publish ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_publish], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {[false], _St} ->
             {stop, Message};
@@ -221,7 +216,7 @@ on_message_delivered(_ClientId, _Username, #mqtt_message{topic = <<$$, _Rest/bin
     ok;
 on_message_delivered(ClientId, Username,
                     Message=#mqtt_message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
-    ?LOG(debug, "hook message delivered ~s~n", [emqttd_message:format(Message)]),
+    ?LOG(debug, "hook message delivered ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_delivered], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
             ok;
@@ -235,7 +230,7 @@ on_message_acked(_ClientId, _Username, #mqtt_message{topic = <<$$, _Rest/binary>
     ok;
 on_message_acked(ClientId, Username,
                 Message=#mqtt_message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
-    ?LOG(debug, "hook message acked ~s~n", [emqttd_message:format(Message)]),
+    ?LOG(debug, "hook message acked ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_acked], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
             ok;
