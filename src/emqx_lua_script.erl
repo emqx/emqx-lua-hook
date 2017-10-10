@@ -20,7 +20,7 @@
 
 -include_lib("emqx/include/emqx.hrl").
 
--include_lib("emqx/include/emqx_protocol.hrl").
+-include_lib("emqx/include/emqx_mqtt.hrl").
 
 -export([register_on_message_publish/2,     register_on_client_connected/2,
         register_on_client_disconnected/2,  register_on_client_subscribe/2,
