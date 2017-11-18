@@ -41,9 +41,6 @@
 -define(HOOK_ADD(A, B, C),      emqttd_hooks:add(A, B, C)).
 -define(HOOK_DEL(A, B),         emqttd_hooks:delete(A, B)).
 
-
-
-
 register_on_message_publish(ScriptName, LuaState) ->
     ?HOOK_ADD('message.publish', {ScriptName, fun ?MODULE:on_message_publish/2}, [LuaState]).
 
@@ -244,8 +241,6 @@ on_message_acked(ClientId, Username,
             ok
     end.
 
-
-
 to_retain(0) -> false;
 to_retain(1) -> true;
 to_retain("true") -> true;
@@ -259,5 +254,4 @@ to_retain(Num) when is_float(Num) ->
         0 -> false;
         _ -> true
     end.
-
 
