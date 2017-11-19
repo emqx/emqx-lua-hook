@@ -19,21 +19,20 @@
 -author("Feng Lee <feng@emqtt.io>").
 
 -behaviour(application).
+
 -export([start/2, stop/1]).
 
 -define(APP, emq_lua_hook).
 
-
 start(_Type, _Args) ->
-    Ret = emq_lua_hook_sup:start_link(),
+    {ok, Sup} = emq_lua_hook_sup:start_link(),
     emq_lua_hook_cli:loadall(),
     emq_lua_hook_cli:load_cmd(),
-    Ret.
+    {ok, Sup}.
 
 stop(_State) ->
     emq_lua_hook_cli:unloadall(),
-    emq_lua_hook_cli:unload_cmd(),
-    ok.
+    emq_lua_hook_cli:unload_cmd().
 
 
 
