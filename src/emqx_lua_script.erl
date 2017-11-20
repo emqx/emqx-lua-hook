@@ -239,8 +239,6 @@ on_message_acked(ClientId, Username,
             ok
     end.
 
-
-
 to_retain(0) -> false;
 to_retain(1) -> true;
 to_retain("true") -> true;
@@ -254,5 +252,4 @@ to_retain(Num) when is_float(Num) ->
         0 -> false;
         _ -> true
     end.
-
 

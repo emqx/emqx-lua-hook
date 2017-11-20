@@ -1,13 +1,13 @@
 PROJECT = emqx_lua_hook
-PROJECT_DESCRIPTION = EMQ X hooks in lua
-PROJECT_VERSION = 2.4
+PROJECT_DESCRIPTION = EMQ X Lua Hook
+PROJECT_VERSION = 2.3.0
 
 DEPS = lager luerl
 dep_lager = git https://github.com/basho/lager
 dep_luerl = git https://github.com/grutabow/luerl
 
 BUILD_DEPS = emqx cuttlefish
-dep_emqttd = git https://github.com/emqtt/emqttd X
+dep_emqx = git https://github.com/emqx/emqx X
 dep_cuttlefish = git https://github.com/emqtt/cuttlefish
 
 ERLC_OPTS += +debug_info

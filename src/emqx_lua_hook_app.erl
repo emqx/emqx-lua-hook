@@ -23,13 +23,12 @@
 -define(APP, emqx_lua_hook).
 
 start(_Type, _Args) ->
-    Ret = emqx_lua_hook_sup:start_link(),
+    {ok, Sup} = emqx_lua_hook_sup:start_link(),
     emqx_lua_hook_cli:loadall(),
     emqx_lua_hook_cli:load_cmd(),
-    Ret.
+    {ok, Sup}.
 
 stop(_State) ->
     emqx_lua_hook_cli:unloadall(),
-    emqx_lua_hook_cli:unload_cmd(),
-    ok.
+    emqx_lua_hook_cli:unload_cmd().
 

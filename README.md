@@ -1,7 +1,7 @@
 
 # emqx-lua-hook
 
-This plugin make it possible to write hooks in lua scripts.
+This plugin makes it possible to write hooks in lua scripts.
 
 Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl) which supports Lua 5.2. Following features may not work properly:
 * label and goto
@@ -26,7 +26,6 @@ bin/emqx_ctl plugins load emq_lua_hook
 * Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.
 * It's hard to debug lua script in emqx environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory.
 * Global variable will lost its value for each call. Do NOT use global variable in lua scripts.
-
 
 
 # Example
@@ -64,7 +63,6 @@ If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or ex
 ```
 /emqx/bin/emqx_ctl luahook reload test2.lua
 ```
-
 
 
 # Hook API
@@ -280,8 +278,6 @@ This API exports hook(s) implemented in its lua script.
  - "on_session_unsubscribed"
 
 
-
-
 # management command
 
 ## load
@@ -320,11 +316,6 @@ emqx_ctl luahook disable script_name
 This command will unload this script, and rename lua file "script_name.lua" to "script_name.lua.x", which will not be loaded during next boot.
 
 
-
-
-
-
-
 License
 -------
 
@@ -333,5 +324,5 @@ Apache License Version 2.0
 Author
 ------
 
-Feng Lee <feng@emqtt.io>
+EMQ X Team.
 
