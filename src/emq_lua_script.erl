@@ -1,5 +1,5 @@
 %%--------------------------------------------------------------------
-%% Copyright (c) 2016-2017 Feng Lee <feng@emqtt.io>. All Rights Reserved.
+%% Copyright (c) 2016-2017 EMQ Enterprise, Inc. (http://emqtt.io)
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -18,23 +18,21 @@
 
 -author("Feng Lee <feng@emqtt.io>").
 
--export([register_on_message_publish/2,     register_on_client_connected/2,
-        register_on_client_disconnected/2,  register_on_client_subscribe/2,
-        register_on_client_unsubscribe/2,   register_on_message_acked/2,
-        register_on_message_delivered/2,    register_on_session_subscribed/2,
-        register_on_session_unsubscribed/2, unregister_hooks/1]).
+-export([register_on_message_publish/2, register_on_client_connected/2,
+         register_on_client_disconnected/2, register_on_client_subscribe/2,
+         register_on_client_unsubscribe/2, register_on_message_acked/2,
+         register_on_message_delivered/2, register_on_session_subscribed/2,
+         register_on_session_unsubscribed/2, unregister_hooks/1]).
 
--export([on_message_publish/2,      on_message_delivered/4,
-        on_message_acked/4,         on_client_connected/3,
-        on_client_subscribe/4,      on_client_unsubscribe/4,
-        on_client_disconnected/3,   on_session_subscribed/4,
-        on_session_unsubscribed/4]).
-
-
--include_lib("emqttd/include/emqttd.hrl").
--include_lib("emqttd/include/emqttd_protocol.hrl").
+-export([on_message_publish/2, on_message_delivered/4, on_message_acked/4,
+         on_client_connected/3, on_client_subscribe/4, on_client_unsubscribe/4,
+         on_client_disconnected/3, on_session_subscribed/4, on_session_unsubscribed/4]).
 
 -include("emq_lua_hook.hrl").
+
+-include_lib("emqttd/include/emqttd.hrl").
+
+-include_lib("emqttd/include/emqttd_protocol.hrl").
 
 -define(EMPTY_USERNAME, "").
 
@@ -68,7 +66,6 @@ register_on_session_subscribed(ScriptName, LuaState) ->
 register_on_session_unsubscribed(ScriptName, LuaState) ->
     ?HOOK_ADD('session.unsubscribed', {ScriptName, fun ?MODULE:on_session_unsubscribed/4}, [LuaState]).
 
-
 unregister_hooks(ScriptName) ->
     ?HOOK_DEL('message.publish',      {ScriptName, fun ?MODULE:on_message_publish/2}),
     ?HOOK_DEL('message.delivered',    {ScriptName, fun ?MODULE:on_message_delivered/4}),
@@ -80,7 +77,6 @@ unregister_hooks(ScriptName) ->
     ?HOOK_DEL('session.subscribed',   {ScriptName, fun ?MODULE:on_session_subscribed/4}),
     ?HOOK_DEL('session.unsubscribed', {ScriptName, fun ?MODULE:on_session_unsubscribed/4}).
 
-
 on_client_connected(ReturnCode, #mqtt_client{client_id = ClientId, username = UserName}, LuaState) ->
     ?LOG(debug, "hook client ClientId=~s UserName=~s connected with code ~p~n", [ClientId, UserName, ReturnCode]),
     case catch luerl:call_function([on_client_connected], [ClientId, UserName, ReturnCode], LuaState) of
@@ -91,7 +87,6 @@ on_client_connected(ReturnCode, #mqtt_client{client_id = ClientId, username = Us
             ok
     end.
 
-
 on_client_disconnected(Error, #mqtt_client{client_id = ClientId, username = UserName}, LuaState) ->
     ?LOG(debug, "hook client ClientId=~s UserName=~s disconnected with ~p~n", [ClientId, UserName, Error]),
     case catch luerl:call_function([on_client_disconnected], [ClientId, UserName, Error], LuaState) of
@@ -101,7 +96,6 @@ on_client_disconnected(Error, #mqtt_client{client_id = ClientId, username = User
             ?LOG(error, "lua function on_client_disconnected() caught exception, ~p", [Other]),
             ok
     end.
-
 
 on_client_subscribe(ClientId, Username, TopicTable, LuaState) ->
     NewTopicTable =
@@ -187,7 +181,6 @@ on_session_unsubscribed(ClientId, Username, TopicItem = {Topic, _Opts}, LuaState
             {ok, TopicItem}
     end.
 
-
 on_message_publish(Message = #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     {ok, Message};
@@ -250,8 +243,5 @@ to_retain(<<"false">>) -> false;
 to_retain(true) -> true;
 to_retain(false) -> false;
 to_retain(Num) when is_float(Num) ->
-    case round(Num) of
-        0 -> false;
-        _ -> true
-    end.
+    case round(Num) of 0 -> false; _ -> true end.
 
