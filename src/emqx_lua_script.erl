@@ -32,12 +32,6 @@
          on_client_connected/3, on_client_subscribe/4, on_client_unsubscribe/4,
          on_client_disconnected/3, on_session_subscribed/4, on_session_unsubscribed/4]).
 
--include("emqx_lua_hook.hrl").
-
--include_lib("emqx/include/emqx.hrl").
-
--include_lib("emqx/include/emqx_mqtt.hrl").
-
 -define(EMPTY_USERNAME, "").
 
 -define(HOOK_ADD(A, B, C),      emqx_hooks:add(A, B, C)).
