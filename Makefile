@@ -1,6 +1,6 @@
 PROJECT = emqx_lua_hook
 PROJECT_DESCRIPTION = EMQ X Lua Hook
-PROJECT_VERSION = 2.4
+PROJECT_VERSION = 2.4.1
 
 DEPS = lager luerl
 dep_lager = git https://github.com/basho/lager
@@ -20,4 +20,3 @@ include erlang.mk
 
 app.config::
 	./deps/cuttlefish/cuttlefish -l info -e etc/ -c etc/emqx_lua_hook.conf -i priv/emqx_lua_hook.schema -d data
-
