@@ -179,14 +179,14 @@ on_session_unsubscribed(ClientId, Username, TopicItem = {Topic, _Opts}, LuaState
             {ok, TopicItem}
     end.
 
-on_message_publish(Message = #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
+on_message_publish(Message = #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     {ok, Message};
-on_message_publish(Message = #mqtt_message{from = {ClientId, Username},
-                                             qos = Qos,
-                                             retain = Retain,
-                                             topic = Topic,
-                                             payload = Payload},
+on_message_publish(Message = #message{from = {ClientId, Username},
+                                      qos = Qos,
+                                      retain = Retain,
+                                      topic = Topic,
+                                      payload = Payload},
                    LuaState) ->
     ?LOG(debug, "hook message publish ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_publish], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
@@ -194,21 +194,21 @@ on_message_publish(Message = #mqtt_message{from = {ClientId, Username},
             {stop, Message};
         {[NewTopic, NewPayload, NewQos, NewRetain], _St} ->
             ?LOG(debug, "lua function on_message_publish() return ~p", [{NewTopic, NewPayload, NewQos, NewRetain}]),
-            {ok, Message#mqtt_message{topic = NewTopic, payload = NewPayload,
-                                        qos = round(NewQos), retain = to_retain(NewRetain)}};
+            {ok, Message#message{topic = NewTopic, payload = NewPayload,
+                                 qos = round(NewQos), retain = to_retain(NewRetain)}};
         Other ->
             ?LOG(error, "Topic=~p, lua function on_message_publish caught exception, ~p", [Topic, Other]),
             {ok, Message}
     end;
-on_message_publish(Message = #mqtt_message{from = Internal}, LuaState) ->
-    {Status, NewMsg} = on_message_publish(Message#mqtt_message{from={Internal, ?EMPTY_USERNAME}}, LuaState),
-    {Status, NewMsg#mqtt_message{from=Internal}}.
+on_message_publish(Message = #message{from = Internal}, LuaState) ->
+    {Status, NewMsg} = on_message_publish(Message#message{from={Internal, ?EMPTY_USERNAME}}, LuaState),
+    {Status, NewMsg#message{from=Internal}}.
 
-on_message_delivered(_ClientId, _Username, #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
+on_message_delivered(_ClientId, _Username, #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     ok;
 on_message_delivered(ClientId, Username,
-                    Message=#mqtt_message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
+                    Message=#message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
     ?LOG(debug, "hook message delivered ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_delivered], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
@@ -218,11 +218,11 @@ on_message_delivered(ClientId, Username,
             ok
     end.
 
-on_message_acked(_ClientId, _Username, #mqtt_message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
+on_message_acked(_ClientId, _Username, #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     ok;
 on_message_acked(ClientId, Username,
-                Message=#mqtt_message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
+                Message=#message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
     ?LOG(debug, "hook message acked ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_acked], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
