@@ -1,5 +1,4 @@
-%%--------------------------------------------------------------------
-%% Copyright (c) 2016-2018 EMQ Enterprise, Inc. (http://emqtt.io)
+%% Copyright (c) 2018 EMQ Technologies Co., Ltd. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
 %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
-%%--------------------------------------------------------------------
 
 -module(emqx_lua_hook_app).
 
@@ -20,15 +18,13 @@
 
 -export([start/2, stop/1]).
 
--define(APP, emqx_lua_hook).
-
 start(_Type, _Args) ->
     {ok, Sup} = emqx_lua_hook_sup:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    emqx_lua_hook_cli:load_cmd(),
+    emqx_lua_hook:load_scripts(),
+    emqx_lua_hook_cli:load(),
     {ok, Sup}.
 
 stop(_State) ->
-    emqx_lua_hook_cli:unloadall(),
-    emqx_lua_hook_cli:unload_cmd().
+    emqx_lua_hook:unload_scrips(),
+    emqx_lua_hook_cli:unload().
 

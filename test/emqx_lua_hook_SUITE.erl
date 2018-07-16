@@ -1,51 +1,45 @@
-%%--------------------------------------------------------------------
-%% Copyright (c) 2016-2018 Feng Lee <feng@emqtt.io>. All Rights Reserved.
+%% Copyright (c) 2018 EMQ Technologies Co., Ltd. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
 %%
 %%     http://www.apache.org/licenses/LICENSE-2.0
-%% 
+%%
 %% Unless required by applicable law or agreed to in writing, software
 %% distributed under the License is distributed on an "AS IS" BASIS,
 %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
-%%--------------------------------------------------------------------
 
 -module(emqx_lua_hook_SUITE).
 
 -compile(export_all).
+-compile(nowarn_export_all).
 
 -include_lib("emqx/include/emqx.hrl").
-
--include_lib("emqx/include/emqx_protocol.hrl").
-
+-include_lib("emqx/include/emqx_mqtt.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 all() ->
-    [   case01, case02, case03, case04,
-        case11, case12, case13,
-        case21, case22, case23,
-        case31, case32,
-        case41, case42, case43,
-        case51, case52, case53,
-        case61, case62,
-        case71, case72, case73,
-        case81, case82, case83,
-        case101, case102,
-        case110, case111, case112, case113, case114, case115,
-        case201, case202, case203, case204, case205
-    ].
+    [case01, case02, case03, case04,
+     case11, case12, case13,
+     case21, case22, case23,
+     case31, case32,
+     case41, case42, case43,
+     case51, case52, case53,
+     case61, case62,
+     case71, case72, case73,
+     case81, case82, case83,
+     case101, case102,
+     case110, case111, case112, case113, case114, case115,
+     case201, case202, case203, case204, case205].
 
 init_per_suite(Config) ->
-    lager_common_test_backend:bounce(debug),
     Config.
 
 end_per_suite(Config) ->
     Config.
-
 
 case01(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -92,7 +86,7 @@ case03(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
-    Code =    "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
+    Code =  "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
