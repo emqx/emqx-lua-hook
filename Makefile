@@ -1,6 +1,6 @@
 PROJECT = emqx_lua_hook
 PROJECT_DESCRIPTION = EMQ X Lua Hook
-PROJECT_VERSION = 2.4.2
+PROJECT_VERSION = 2.4.3
 
 DEPS = lager luerl
 dep_lager = git https://github.com/basho/lager
