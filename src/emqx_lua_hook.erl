@@ -18,17 +18,14 @@
 
 -include("emqx_lua_hook.hrl").
 -include_lib("luerl/src/luerl.hrl").
+-define(LUA_DIR, "hook_lua/").
+-define(LUA_WILD, ?LUA_DIR++"*.lua").
 
 -export([start_link/0, stop/0]).
 -export([load_scripts/0, unload_scrips/0, load_script/1, unload_script/1]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
--define(LUA_DIR, "hook_lua/").
--define(LUA_WILD, ?LUA_DIR++"*.lua").
--define(PRINT(Format, Args), io:format(Format, Args)).
--define(PRINT_CMD(Cmd, Descr), io:format("~-48s# ~s~n", [Cmd, Descr])).
--define(USAGE(CmdList), [?PRINT_CMD(Cmd, Descr) || {Cmd, Descr} <- CmdList]).
 
 -record(state, {loaded_scripts = []}).
 
@@ -175,9 +172,3 @@ do_unloadall(Scripts) ->
 
 do_unload(ScriptName) ->
     emqx_lua_script:unregister_hooks(ScriptName).
-
-fullname(Script) ->
-    ?LUA_DIR++Script++".lua".
-fullnamedisable(Script) ->
-    fullname(Script)++".x".
-

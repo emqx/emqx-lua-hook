@@ -16,6 +16,15 @@
 
 -export([load/0, cmd/1, unload/0]).
 
+-include("emqx_lua_hook.hrl").
+-include_lib("luerl/src/luerl.hrl").
+
+-define(LUA_DIR, "hook_lua/").
+-define(LUA_WILD, ?LUA_DIR++"*.lua").
+-define(PRINT(Format, Args), io:format(Format, Args)).
+-define(PRINT_CMD(Cmd, Descr), io:format("~-48s# ~s~n", [Cmd, Descr])).
+-define(USAGE(CmdList), [?PRINT_CMD(Cmd, Descr) || {Cmd, Descr} <- CmdList]).
+
 load() ->
     emqx_ctl:register_cmd(luahook, {?MODULE, cmd}, []).
 
@@ -70,3 +79,7 @@ cmd(_) ->
                     {"luahook enable <Script>",  "enable lua script and load it into hook"},
                     {"luahook disable <Script>", "unload lua script out of hook and disable it"}]).
 
+fullname(Script) ->
+    ?LUA_DIR++Script++".lua".
+fullnamedisable(Script) ->
+    fullname(Script)++".x".

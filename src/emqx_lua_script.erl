@@ -180,7 +180,7 @@ on_message_publish(Message = #message{topic = <<$$, _Rest/binary>>}, _LuaState) 
     {ok, Message};
 on_message_publish(Message = #message{from = {ClientId, Username},
                                       qos = Qos,
-                                      retain = Retain,
+                                      flags = Flags = #{retain := Retain},
                                       topic = Topic,
                                       payload = Payload},
                    LuaState) ->
@@ -191,7 +191,7 @@ on_message_publish(Message = #message{from = {ClientId, Username},
         {[NewTopic, NewPayload, NewQos, NewRetain], _St} ->
             ?LOG(debug, "lua function on_message_publish() return ~p", [{NewTopic, NewPayload, NewQos, NewRetain}]),
             {ok, Message#message{topic = NewTopic, payload = NewPayload,
-                                 qos = round(NewQos), retain = to_retain(NewRetain)}};
+                                 qos = round(NewQos), flags = Flags#{retain => to_retain(NewRetain)}}};
         Other ->
             ?LOG(error, "Topic=~p, lua function on_message_publish caught exception, ~p", [Topic, Other]),
             {ok, Message}
@@ -204,7 +204,7 @@ on_message_delivered(_ClientId, _Username, #message{topic = <<$$, _Rest/binary>>
     %% ignore topics starting with $
     ok;
 on_message_delivered(ClientId, Username,
-                    Message=#message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
+                    Message=#message{topic = Topic, payload = Payload, qos = Qos, flags = #{retain := Retain}}, LuaState) ->
     ?LOG(debug, "hook message delivered ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_delivered], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
@@ -218,7 +218,7 @@ on_message_acked(_ClientId, _Username, #message{topic = <<$$, _Rest/binary>>}, _
     %% ignore topics starting with $
     ok;
 on_message_acked(ClientId, Username,
-                Message=#message{topic = Topic, payload = Payload, qos = Qos, retain = Retain}, LuaState) ->
+                Message=#message{topic = Topic, payload = Payload, qos = Qos, flags = #{retain := Retain}}, LuaState) ->
     ?LOG(debug, "hook message acked ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_acked], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->

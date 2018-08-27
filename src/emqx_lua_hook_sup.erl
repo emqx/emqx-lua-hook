@@ -25,9 +25,9 @@ start_link() ->
 init(_Args) ->
     {ok, {{one_for_one, 10, 3600},
           [#{id       => lua_hook,
-             start    => {emqx_lua_hook, start_link, []}
+             start    => {emqx_lua_hook, start_link, []},
              restart  => permanent,
              shutdown => 5000,
              type     => worker,
-             modules  => [emqx_lua_hook]}]}.
+             modules  => [emqx_lua_hook]}]}}.
 
