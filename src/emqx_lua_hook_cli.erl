@@ -26,10 +26,10 @@
 -define(USAGE(CmdList), [?PRINT_CMD(Cmd, Descr) || {Cmd, Descr} <- CmdList]).
 
 load() ->
-    emqx_ctl:register_cmd(luahook, {?MODULE, cmd}, []).
+    emqx_ctl:register_command(luahook, {?MODULE, cmd}, []).
 
 unload() ->
-    emqx_ctl:unregister_cmd(luahook).
+    emqx_ctl:unregister_command(luahook).
 
 cmd(["load", Script]) ->
     case emqx_lua_hook:load_script(fullname(Script)) of
