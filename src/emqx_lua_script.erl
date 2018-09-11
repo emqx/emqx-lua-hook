@@ -24,9 +24,9 @@
          register_on_message_delivered/2, register_on_session_subscribed/2,
          register_on_session_unsubscribed/2, unregister_hooks/1]).
 
--export([on_message_publish/2, on_message_delivered/4, on_message_acked/4,
-         on_client_connected/3, on_client_subscribe/4, on_client_unsubscribe/4,
-         on_client_disconnected/3, on_session_subscribed/4, on_session_unsubscribed/4]).
+-export([on_message_publish/2, on_message_delivered/3, on_message_acked/3,
+         on_client_connected/4, on_client_subscribe/3, on_client_unsubscribe/3,
+         on_client_disconnected/3, on_session_subscribed/3, on_session_unsubscribed/3]).
 
 -define(EMPTY_USERNAME, "").
 
@@ -37,43 +37,43 @@ register_on_message_publish(ScriptName, LuaState) ->
     ?HOOK_ADD('message.publish', {ScriptName, fun ?MODULE:on_message_publish/2}, [LuaState]).
 
 register_on_message_delivered(ScriptName, LuaState) ->
-    ?HOOK_ADD('message.delivered', {ScriptName, fun ?MODULE:on_message_delivered/4}, [LuaState]).
+    ?HOOK_ADD('message.delivered', {ScriptName, fun ?MODULE:on_message_delivered/3}, [LuaState]).
 
 register_on_message_acked(ScriptName, LuaState) ->
-    ?HOOK_ADD('message.acked', {ScriptName, fun ?MODULE:on_message_acked/4}, [LuaState]).
+    ?HOOK_ADD('message.acked', {ScriptName, fun ?MODULE:on_message_acked/3}, [LuaState]).
 
 register_on_client_connected(ScriptName, LuaState) ->
-    ?HOOK_ADD('client.connected', {ScriptName, fun ?MODULE:on_client_connected/3}, [LuaState]).
+    ?HOOK_ADD('client.connected', {ScriptName, fun ?MODULE:on_client_connected/4}, [LuaState]).
 
 register_on_client_subscribe(ScriptName, LuaState) ->
-    ?HOOK_ADD('client.subscribe', {ScriptName, fun ?MODULE:on_client_subscribe/4}, [LuaState]).
+    ?HOOK_ADD('client.subscribe', {ScriptName, fun ?MODULE:on_client_subscribe/3}, [LuaState]).
 
 register_on_client_unsubscribe(ScriptName, LuaState) ->
-    ?HOOK_ADD('client.unsubscribe', {ScriptName, fun ?MODULE:on_client_unsubscribe/4}, [LuaState]).
+    ?HOOK_ADD('client.unsubscribe', {ScriptName, fun ?MODULE:on_client_unsubscribe/3}, [LuaState]).
 
 register_on_client_disconnected(ScriptName, LuaState) ->
     ?HOOK_ADD('client.disconnected', {ScriptName, fun ?MODULE:on_client_disconnected/3}, [LuaState]).
 
 register_on_session_subscribed(ScriptName, LuaState) ->
-    ?HOOK_ADD('session.subscribed', {ScriptName, fun ?MODULE:on_session_subscribed/4}, [LuaState]).
+    ?HOOK_ADD('session.subscribed', {ScriptName, fun ?MODULE:on_session_subscribed/3}, [LuaState]).
 
 register_on_session_unsubscribed(ScriptName, LuaState) ->
-    ?HOOK_ADD('session.unsubscribed', {ScriptName, fun ?MODULE:on_session_unsubscribed/4}, [LuaState]).
+    ?HOOK_ADD('session.unsubscribed', {ScriptName, fun ?MODULE:on_session_unsubscribed/3}, [LuaState]).
 
 unregister_hooks(ScriptName) ->
     ?HOOK_DEL('message.publish',      {ScriptName, fun ?MODULE:on_message_publish/2}),
-    ?HOOK_DEL('message.delivered',    {ScriptName, fun ?MODULE:on_message_delivered/4}),
-    ?HOOK_DEL('message.acked',         {ScriptName, fun ?MODULE:on_message_acked/4}),
-    ?HOOK_DEL('client.connected',     {ScriptName, fun ?MODULE:on_client_connected/3}),
-    ?HOOK_DEL('client.subscribe',     {ScriptName, fun ?MODULE:on_client_subscribe/4}),
-    ?HOOK_DEL('client.unsubscribe',   {ScriptName, fun ?MODULE:on_client_unsubscribe/4}),
+    ?HOOK_DEL('message.delivered',    {ScriptName, fun ?MODULE:on_message_delivered/3}),
+    ?HOOK_DEL('message.acked',         {ScriptName, fun ?MODULE:on_message_acked/3}),
+    ?HOOK_DEL('client.connected',     {ScriptName, fun ?MODULE:on_client_connected/4}),
+    ?HOOK_DEL('client.subscribe',     {ScriptName, fun ?MODULE:on_client_subscribe/3}),
+    ?HOOK_DEL('client.unsubscribe',   {ScriptName, fun ?MODULE:on_client_unsubscribe/3}),
     ?HOOK_DEL('client.disconnected',  {ScriptName, fun ?MODULE:on_client_disconnected/3}),
-    ?HOOK_DEL('session.subscribed',   {ScriptName, fun ?MODULE:on_session_subscribed/4}),
-    ?HOOK_DEL('session.unsubscribed', {ScriptName, fun ?MODULE:on_session_unsubscribed/4}).
+    ?HOOK_DEL('session.subscribed',   {ScriptName, fun ?MODULE:on_session_subscribed/3}),
+    ?HOOK_DEL('session.unsubscribed', {ScriptName, fun ?MODULE:on_session_unsubscribed/3}).
 
-on_client_connected(ReturnCode, #mqtt_client{client_id = ClientId, username = UserName}, LuaState) ->
-    ?LOG(debug, "hook client ClientId=~s UserName=~s connected with code ~p~n", [ClientId, UserName, ReturnCode]),
-    case catch luerl:call_function([on_client_connected], [ClientId, UserName, ReturnCode], LuaState) of
+on_client_connected(#{client_id := ClientId, username := UserName}, ConnAck, _ConnAttrs, LuaState) ->
+    ?LOG(debug, "hook client ClientId=~s UserName=~s connected with code ~p~n", [ClientId, UserName, ConnAck]),
+    case catch luerl:call_function([on_client_connected], [ClientId, UserName, ConnAck], LuaState) of
         {_Result, _St} ->
             ok;
         Other ->
@@ -81,7 +81,7 @@ on_client_connected(ReturnCode, #mqtt_client{client_id = ClientId, username = Us
             ok
     end.
 
-on_client_disconnected(Error, #mqtt_client{client_id = ClientId, username = UserName}, LuaState) ->
+on_client_disconnected(#{client_id := ClientId, username := UserName}, Error, LuaState) ->
     ?LOG(debug, "hook client ClientId=~s UserName=~s disconnected with ~p~n", [ClientId, UserName, Error]),
     case catch luerl:call_function([on_client_disconnected], [ClientId, UserName, Error], LuaState) of
         {_Result, _St} ->
@@ -91,10 +91,10 @@ on_client_disconnected(Error, #mqtt_client{client_id = ClientId, username = User
             ok
     end.
 
-on_client_subscribe(ClientId, Username, TopicTable, LuaState) ->
+on_client_subscribe(#{client_id := ClientId}, TopicTable, LuaState) ->
     NewTopicTable =
         lists:foldr(fun(TopicItem, Acc) ->
-                        case on_client_subscribe_single(ClientId, Username, TopicItem, LuaState) of
+                        case on_client_subscribe_single(ClientId, undefined, TopicItem, LuaState) of
                             false -> Acc;
                             NewTopicIem -> [NewTopicIem|Acc]
                         end
@@ -107,9 +107,9 @@ on_client_subscribe(ClientId, Username, TopicTable, LuaState) ->
 on_client_subscribe_single(_ClientId, _Username, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
     %% ignore topics starting with $
     TopicItem;
-on_client_subscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaState) ->
-    ?LOG(debug, "hook client(~s/~s) will subscribe: ~p~n", [Username, ClientId, Topic]),
-    case catch luerl:call_function([on_client_subscribe], [ClientId, Username, Topic], LuaState) of
+on_client_subscribe_single(ClientId, _Username, TopicItem = {Topic, Opts}, LuaState) ->
+    ?LOG(debug, "hook client(~s/~s) will subscribe: ~p~n", [undefined, ClientId, Topic]),
+    case catch luerl:call_function([on_client_subscribe], [ClientId, undefined, Topic], LuaState) of
         {[false], _St} ->
             false;   % cancel this topic's subscription
         {[NewTopic], _St} ->
@@ -120,10 +120,10 @@ on_client_subscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaSta
             TopicItem
     end.
 
-on_client_unsubscribe(ClientId, Username, TopicTable, LuaState) ->
+on_client_unsubscribe(#{client_id := ClientId}, TopicTable, LuaState) ->
     NewTopicTable =
         lists:foldr(fun(TopicItem, Acc) ->
-                        case on_client_unsubscribe_single(ClientId, Username, TopicItem, LuaState) of
+                        case on_client_unsubscribe_single(ClientId, undefined, TopicItem, LuaState) of
                             false -> Acc;
                             NewTopicIem -> [NewTopicIem|Acc]
                         end
@@ -149,12 +149,12 @@ on_client_unsubscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaS
             TopicItem
     end.
 
-on_session_subscribed(_ClientId, _Username, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
+on_session_subscribed(#{}, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
     %% ignore topics starting with $
     {ok, TopicItem};
-on_session_subscribed(ClientId, Username, TopicItem = {Topic, _Opts}, LuaState) ->
-    ?LOG(debug, "hook session(~s/~s) has subscribed: ~p~n", [Username, ClientId, Topic]),
-    case catch luerl:call_function([on_session_subscribed], [ClientId, Username, Topic], LuaState) of
+on_session_subscribed(#{client_id := ClientId}, TopicItem = {Topic, _Opts}, LuaState) ->
+    ?LOG(debug, "hook session(~s/~s) has subscribed: ~p~n", [undefined, ClientId, Topic]),
+    case catch luerl:call_function([on_session_subscribed], [ClientId, undefined, Topic], LuaState) of
         {_Result, _St} ->
             {ok, TopicItem};
         Other ->
@@ -162,12 +162,12 @@ on_session_subscribed(ClientId, Username, TopicItem = {Topic, _Opts}, LuaState) 
             {ok, TopicItem}
     end.
 
-on_session_unsubscribed(_ClientId, _Username, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
+on_session_unsubscribed(#{}, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
     %% ignore topics starting with $
     {ok, TopicItem};
-on_session_unsubscribed(ClientId, Username, TopicItem = {Topic, _Opts}, LuaState) ->
-    ?LOG(debug, "hook session(~s/~s) has unsubscribed ~p~n", [ClientId, Username, Topic]),
-    case catch luerl:call_function([on_session_unsubscribed], [ClientId, Username, Topic], LuaState) of
+on_session_unsubscribed(#{client_id := ClientId}, TopicItem = {Topic, _Opts}, LuaState) ->
+    ?LOG(debug, "hook session(~s/~s) has unsubscribed ~p~n", [ClientId, undefined, Topic]),
+    case catch luerl:call_function([on_session_unsubscribed], [ClientId, undefined, Topic], LuaState) of
         {_Result, _St} ->
             {ok, TopicItem};
         Other ->
@@ -200,13 +200,13 @@ on_message_publish(Message = #message{from = Internal}, LuaState) ->
     {Status, NewMsg} = on_message_publish(Message#message{from={Internal, ?EMPTY_USERNAME}}, LuaState),
     {Status, NewMsg#message{from=Internal}}.
 
-on_message_delivered(_ClientId, _Username, #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
+on_message_delivered(#{}, #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_message_delivered(ClientId, Username,
+on_message_delivered(#{client_id := ClientId},
                     Message=#message{topic = Topic, payload = Payload, qos = Qos, flags = #{retain := Retain}}, LuaState) ->
     ?LOG(debug, "hook message delivered ~s~n", [emqx_message:format(Message)]),
-    case catch luerl:call_function([on_message_delivered], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
+    case catch luerl:call_function([on_message_delivered], [ClientId, undefined, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
             ok;
         Other ->
@@ -214,13 +214,13 @@ on_message_delivered(ClientId, Username,
             ok
     end.
 
-on_message_acked(_ClientId, _Username, #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
+on_message_acked(#{}, #message{topic = <<$$, _Rest/binary>>}, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_message_acked(ClientId, Username,
+on_message_acked(#{client_id := ClientId},
                 Message=#message{topic = Topic, payload = Payload, qos = Qos, flags = #{retain := Retain}}, LuaState) ->
     ?LOG(debug, "hook message acked ~s~n", [emqx_message:format(Message)]),
-    case catch luerl:call_function([on_message_acked], [ClientId, Username, Topic, Payload, Qos, Retain], LuaState) of
+    case catch luerl:call_function([on_message_acked], [ClientId, undefined, Topic, Payload, Qos, Retain], LuaState) of
         {_Result,_St} ->
             ok;
         Other ->
