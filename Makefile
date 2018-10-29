@@ -2,8 +2,7 @@ PROJECT = emqx_lua_hook
 PROJECT_DESCRIPTION = EMQ X Lua Hooks
 PROJECT_VERSION = 3.0
 
-DEPS = lager luerl
-dep_lager = git https://github.com/erlang-lager/lager 3.6.4
+DEPS = luerl
 dep_luerl = git https://github.com/grutabow/luerl
 
 BUILD_DEPS = emqx cuttlefish
@@ -11,7 +10,6 @@ dep_emqx = git https://github.com/emqx/emqx emqx30
 dep_cuttlefish = git https://github.com/emqx/cuttlefish emqx30
 
 ERLC_OPTS += +debug_info
-ERLC_OPTS += +'{parse_transform, lager_transform}'
 
 NO_AUTOPATCH = luerl
 
