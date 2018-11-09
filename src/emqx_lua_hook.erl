@@ -64,24 +64,29 @@ handle_call(unload_scrips, _From, State=#state{loaded_scripts = Scripts}) ->
     do_unloadall(Scripts),
     {reply, ok, State#state{loaded_scripts = []}, hibernate};
 
-handle_call({load, ScriptName}, _From, State=#state{loaded_scripts = Scripts}) ->
+handle_call({load_script, ScriptName}, _From, State=#state{loaded_scripts = Scripts}) ->
     {Ret, NewScripts} = case do_load(ScriptName) of
                             error -> {error, Scripts};
-                            ScriptName ->
-                                case lists:member(ScriptName, Scripts) of
+                            {ScriptName, LuaState} ->
+                                case lists:member({ScriptName, LuaState}, Scripts) of
                                     true  -> {ok, Scripts};
-                                    false -> {ok, lists:append([ScriptName], Scripts)}
+                                    false -> {ok, lists:append([{ScriptName, LuaState}], Scripts)}
                                 end
                         end,
     {reply, Ret, State#state{loaded_scripts = NewScripts}, hibernate};
 
-handle_call({unload, ScriptName}, _From, State=#state{loaded_scripts = Scripts}) ->
-    do_unload(ScriptName), % Unload first! If this gen_server has been crashed, loaded_scripts will be empty
-    NewScripts = case lists:member(ScriptName, Scripts) of
-                     true -> lists:delete(ScriptName, Scripts);
-                     false -> Scripts
-                 end,
-    {reply, ok, State#state{loaded_scripts = NewScripts}, hibernate};
+handle_call({unload_script, ScriptName}, _From, State=#state{loaded_scripts = Scripts}) ->
+    case proplists:get_all_values(ScriptName, Scripts) of
+        [] ->
+            {reply, ok, State, hibernate};
+        LuaStates ->
+            lists:foreach(fun(LuaState) ->
+                              % Unload first! If this gen_server has been crashed, loaded_scripts will be empty
+                              do_unload({ScriptName, LuaState})
+                          end, LuaStates),
+            NewScripts = proplists:delete(ScriptName, Scripts),
+            {reply, ok, State#state{loaded_scripts = NewScripts}, hibernate}
+    end;
 
 handle_call(Request, From, State) ->
     ?LOG(error, "Unknown Request=~p from ~p", [Request, From]),
@@ -108,8 +113,8 @@ code_change(_OldVsn, State, _Extra) ->
 
 do_loadall() ->
     FileList = filelib:wildcard(?LUA_WILD),
-    List = [do_load(X)||X<-FileList],
-    [X||X<-List, is_list(X)].
+    List = [do_load(X) || X <- FileList],
+    [X || X <- List, is_tuple(X)].
 
 do_load(FileName) ->
     case catch luerl:dofile(FileName) of
@@ -123,8 +128,8 @@ do_load(FileName) ->
                     error;
                 {Ret1, St1} ->
                     ?LOG(debug, "Register lua script ~p", [FileName]),
-                    do_register_hooks(Ret1, St1, FileName),
-                    FileName;
+                    do_register_hooks(Ret1, FileName, St1),
+                    {FileName, St1};
                 Other ->
                     ?LOG(error, "Failed to load lua script ~p, register_hook() raise exception ~p", [FileName, Other]),
                     error
@@ -134,41 +139,40 @@ do_load(FileName) ->
             error
     end.
 
-
-do_register(<<"on_message_publish">>, St, ScriptName) ->
+do_register(<<"on_message_publish">>, ScriptName, St) ->
     emqx_lua_script:register_on_message_publish(ScriptName, St);
-do_register(<<"on_message_delivered">>, St, ScriptName) ->
+do_register(<<"on_message_delivered">>, ScriptName, St) ->
     emqx_lua_script:register_on_message_delivered(ScriptName, St);
-do_register(<<"on_message_acked">>, St, ScriptName) ->
+do_register(<<"on_message_acked">>, ScriptName, St) ->
     emqx_lua_script:register_on_message_acked(ScriptName, St);
-do_register(<<"on_client_connected">>, St, ScriptName) ->
+do_register(<<"on_client_connected">>, ScriptName, St) ->
     emqx_lua_script:register_on_client_connected(ScriptName, St);
-do_register(<<"on_client_subscribe">>, St, ScriptName) ->
+do_register(<<"on_client_subscribe">>, ScriptName, St) ->
     emqx_lua_script:register_on_client_subscribe(ScriptName, St);
-do_register(<<"on_client_unsubscribe">>, St, ScriptName) ->
+do_register(<<"on_client_unsubscribe">>, ScriptName, St) ->
     emqx_lua_script:register_on_client_unsubscribe(ScriptName, St);
-do_register(<<"on_client_disconnected">>, St, ScriptName) ->
+do_register(<<"on_client_disconnected">>, ScriptName, St) ->
     emqx_lua_script:register_on_client_disconnected(ScriptName, St);
-do_register(<<"on_session_subscribed">>, St, ScriptName) ->
+do_register(<<"on_session_subscribed">>, ScriptName, St) ->
     emqx_lua_script:register_on_session_subscribed(ScriptName, St);
-do_register(<<"on_session_unsubscribed">>, St, ScriptName) ->
+do_register(<<"on_session_unsubscribed">>, ScriptName, St) ->
     emqx_lua_script:register_on_session_unsubscribed(ScriptName, St);
-do_register(Hook, _St, ScriptName) ->
+do_register(Hook, ScriptName, _St) ->
     ?LOG(error, "Discard unknown hook ~p ScriptName=~p", [Hook, ScriptName]).
 
-do_register_hooks([], _St, _ScriptName) ->
+do_register_hooks([], _ScriptName, _St) ->
     ok;
-do_register_hooks([H|T], St, ScriptName) ->
-    do_register(H, St, ScriptName),
-    do_register_hooks(T, St, ScriptName);
-do_register_hooks(Hook = <<$o, $n, _Rest/binary>>, St, ScriptName) ->
-    do_register(Hook, St, ScriptName);
-do_register_hooks(Hook, _St, ScriptName) ->
+do_register_hooks([H|T], ScriptName, St) ->
+    do_register(H, ScriptName, St),
+    do_register_hooks(T, ScriptName, St);
+do_register_hooks(Hook = <<$o, $n, _Rest/binary>>, ScriptName, St) ->
+    do_register(Hook, ScriptName, St);
+do_register_hooks(Hook, ScriptName, _St) ->
     ?LOG(error, "Discard unknown hook type ~p from ~p", [Hook, ScriptName]).
 
 do_unloadall(Scripts) ->
     [do_unload(X) || X <- Scripts],
     ok.
 
-do_unload(ScriptName) ->
-    emqx_lua_script:unregister_hooks(ScriptName).
+do_unload(Script) ->
+    emqx_lua_script:unregister_hooks(Script).
