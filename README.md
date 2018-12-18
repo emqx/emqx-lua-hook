@@ -17,7 +17,7 @@ Each lua script could export several functions binding with emqx hooks, triggere
 
 To start this plugin, run following command:
 ```shell
-bin/emqx_ctl plugins load emq_lua_hook
+bin/emqx_ctl plugins load emqx_lua_hook
 ```
 
 
