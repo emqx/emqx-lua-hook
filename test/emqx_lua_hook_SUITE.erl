@@ -31,7 +31,7 @@ all() ->
      case61, case62,
      case71, case72, case73,
      case81, case82, case83,
-     case101, case102,
+     case101,
      case110, case111, case112, case113, case114, case115,
      case201, case202, case203, case204, case205].
 
@@ -53,12 +53,12 @@ case01(_Config) ->
             "\n    return \"on_message_publish\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{from = {<<"ClientId78">>, <<"UsernameTom">>}, qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{from = {<<"myclient">>, <<"tester">>}, qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{payload = <<"hello">>}}, Ret),
-    emqx_lua_hook_cli:stop(),
+    ?assertEqual({ok, Msg#message{payload = <<"hello">>}}, Ret),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
 case02(_Config) ->
@@ -73,14 +73,13 @@ case02(_Config) ->
             "\n    return \"on_message_publish\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{from = {<<"ClientId78">>, <<"UsernameTom">>}, qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{from = {<<"myclient">>, <<"tester">>}, qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
     ?assertEqual({stop, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case03(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -94,12 +93,12 @@ case03(_Config) ->
             "\n    return \"on_message_publish\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{from = {<<"ClientId78">>, <<"UsernameTom">>}, qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{from = {<<"myclient">>, <<"tester">>}, qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
 case04(_Config) ->
@@ -118,15 +117,14 @@ case04(_Config) ->
             "\n    return \"on_message_publish\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     %% from is special, not the {ClientId, Username} pattern
-    Msg = #mqtt_message{from = broker, qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Msg = #message{from = broker, qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{payload = <<"hello broker">>}}, Ret),
-    emqx_lua_hook_cli:stop(),
+    ?assertEqual({ok, Msg#message{payload = <<"hello broker">>}}, Ret),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case11(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -140,14 +138,13 @@ case11(_Config) ->
             "\n    return \"on_message_delivered\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.delivered',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqx_hooks:run('message.delivered', [#{client_id => <<"myclient">>}], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case12(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -161,14 +158,13 @@ case12(_Config) ->
             "\n    return \"on_message_delivered\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.delivered',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqx_hooks:run('message.delivered', [#{client_id => <<"myclient">>}], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case13(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -182,15 +178,13 @@ case13(_Config) ->
             "\n    return \"on_message_delivered\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.delivered',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqx_hooks:run('message.delivered', [#{client_id => <<"myclient">>}], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
 
 case21(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -201,17 +195,16 @@ case21(_Config) ->
             "\nend"
             "\n"
             "\nfunction register_hook()"
-            "\n    return \"on_message_delivered\""
+            "\n    return \"on_message_acked\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqx_hooks:run('message.acked', [#{client_id => <<"myclient">>}], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case22(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -222,17 +215,16 @@ case22(_Config) ->
             "\nend"
             "\n"
             "\nfunction register_hook()"
-            "\n    return \"on_message_delivered\""
+            "\n    return \"on_message_acked\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqx_hooks:run('message.acked', [#{client_id => <<"myclient">>}], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case23(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -243,19 +235,16 @@ case23(_Config) ->
             "\nend"
             "\n"
             "\nfunction register_hook()"
-            "\n    return \"on_message_delivered\""
+            "\n    return \"on_message_acked\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked',[<<"ClientId0">>, <<"UsernameTom">>], Msg),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
+    Ret = emqx_hooks:run('message.acked', [#{client_id => <<"myclient">>}], Msg),
     ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
-
 
 case31(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -269,16 +258,13 @@ case31(_Config) ->
             "\n    return \"on_client_connected\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_client{client_id = <<"ClientId9">>, username = <<"UserTom">>},
-    Ret = emqx_hooks:run('client.connected',[0], Msg),
-    ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    ?assertEqual(ok, 
+                 emqx_hooks:run('client.connected', 
+                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0, []])),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
-
 
 case32(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -292,16 +278,13 @@ case32(_Config) ->
             "\n    return \"on_client_connected\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Msg = #mqtt_client{client_id = <<"ClientId9">>, username = <<"UserTom">>},
-    Ret = emqx_hooks:run('client.connected',[0], Msg),
-    ?assertEqual({ok, Msg}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    ?assertEqual(ok, 
+                 emqx_hooks:run('client.connected', 
+                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0, []])),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
-
 
 case41(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -318,14 +301,13 @@ case41(_Config) ->
             "\n    return \"on_client_subscribe\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run('client.subscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret = emqx_hooks:run('client.subscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({ok, [{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}]}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case42(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -339,14 +321,13 @@ case42(_Config) ->
             "\n    return \"on_client_subscribe\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run('client.subscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret = emqx_hooks:run('client.subscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({stop, TopicTable}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case43(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -360,15 +341,13 @@ case43(_Config) ->
             "\n    return \"on_client_subscribe\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run('client.subscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret = emqx_hooks:run('client.subscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({ok, TopicTable}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
 
 case51(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -385,14 +364,13 @@ case51(_Config) ->
             "\n    return \"on_client_unsubscribe\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run('client.unsubscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret = emqx_hooks:run('client.unsubscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({ok, [{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}]}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case52(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -406,14 +384,13 @@ case52(_Config) ->
             "\n    return \"on_client_unsubscribe\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run('client.unsubscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret = emqx_hooks:run('client.unsubscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({stop, TopicTable}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case53(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -427,16 +404,13 @@ case53(_Config) ->
             "\n    return \"on_client_unsubscribe\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run('client.unsubscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret = emqx_hooks:run('client.unsubscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({ok, TopicTable}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
-
 
 case61(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -450,15 +424,13 @@ case61(_Config) ->
             "\n    return \"on_client_disconnected\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Client = #mqtt_client{client_id = <<"ClientId7">>, username = <<"UserNameJerry">>},
-    Ret = emqx_hooks:run('client.disconnected',[0], Client),
-    ?assertEqual({ok, Client}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    ?assertEqual(ok, 
+                 emqx_hooks:run('client.disconnected', 
+                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0])),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
 
 case62(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -472,14 +444,13 @@ case62(_Config) ->
             "\n    return \"on_client_disconnected\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-    Client = #mqtt_client{client_id = <<"ClientId7">>, username = <<"UserNameJerry">>},
-    Ret = emqx_hooks:run('client.disconnected',[0], Client),
-    ?assertEqual({ok, Client}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
+    ?assertEqual(ok, 
+                 emqx_hooks:run('client.disconnected', 
+                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0])),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case71(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -493,14 +464,13 @@ case71(_Config) ->
             "\n    return \"on_session_subscribed\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.subscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case72(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -514,14 +484,13 @@ case72(_Config) ->
             "\n    return \"on_session_subscribed\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.subscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case73(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -535,79 +504,73 @@ case73(_Config) ->
             "\n    return \"on_session_subscribed\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.subscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
 
 case81(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
     Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
-    "\n    return 0"
-    "\nend"
-    "\n"
-    "\nfunction register_hook()"
-    "\n    return \"on_session_unsubscribed\""
-    "\nend",
+            "\n    return 0"
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_session_unsubscribed\""
+            "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.unsubscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.unsubscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case82(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
     Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
-    "\n    return false"     % return false to stop hook
-    "\nend"
-    "\n"
-    "\nfunction register_hook()"
-    "\n    return \"on_session_unsubscribed\""
-    "\nend",
+            "\n    return false"     % return false to stop hook
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_session_unsubscribed\""
+            "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.unsubscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.unsubscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case83(_Config) ->
     ScriptName = "hook_lua/abc.lua",
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir("hook_lua/a"),
     Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
-    "\n    return 9/0"     % this code has fatal error
-    "\nend"
-    "\n"
-    "\nfunction register_hook()"
-    "\n    return \"on_session_unsubscribed\""
-    "\nend",
+            "\n    return 9/0"     % this code has fatal error
+            "\nend"
+            "\n"
+            "\nfunction register_hook()"
+            "\n    return \"on_session_unsubscribed\""
+            "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.unsubscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.unsubscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
-
 
 case101(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -635,28 +598,19 @@ case101(_Config) ->
             "\nend",
     ok = file:write_file(ScriptName2, Code2),
 
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
 
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
-
-    Ret = emqx_hooks:run('message.publish',[], #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>}),
-    ?assertEqual({ok, #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"hello">>}}, Ret),
+    Ret = emqx_hooks:run('message.publish',[], #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>}),
+    ?assertEqual({ok, #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"hello">>}}, Ret),
 
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret2 = emqx_hooks:run('client.subscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret2 = emqx_hooks:run('client.subscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({ok, [{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}]}, Ret2),
 
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName),
     ok = file:delete(ScriptName2).
-
-case102(_Config) ->
-    emqx_hooks:start_link(),
-    {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    timer:sleep(500),
-    true = is_process_alive(whereis(emqx_lua_hook_cli)),
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
 
 case110(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -673,14 +627,11 @@ case110(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    ?assertEqual({ok, Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
-
-
-
 
 case111(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -697,14 +648,12 @@ case111(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    emqx_ctl:run(["luahook", "unload", "abc"]),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_ctl:run_command(["luahook", "unload", "abc"]),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
     ?assertEqual({ok, Msg}, Ret),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
-
-
 
 case112(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -721,12 +670,12 @@ case112(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    emqx_ctl:run(["luahook", "unload", "abc"]),
+    emqx_ctl:run_command(["luahook", "unload", "abc"]),
     timer:sleep(100),
-    emqx_ctl:run(["luahook", "load", "abc"]),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_ctl:run_command(["luahook", "load", "abc"]),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    ?assertEqual({ok, Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
 
@@ -747,16 +696,14 @@ case113(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    emqx_ctl:run(["luahook", "disable", "abc"]),   % this command will rename "abc.lua" to "abc.lua.x"
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_ctl:run_command(["luahook", "disable", "abc"]),   % this command will rename "abc.lua" to "abc.lua.x"
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
     ?assertEqual({ok, Msg}, Ret),
     application:stop(emqx_lua_hook),
     true = filelib:is_file(ScriptDisabled),
     file:delete(ScriptDisabled),
     timer:sleep(700).
-
-
 
 case114(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -773,13 +720,12 @@ case114(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    emqx_ctl:run(["luahook", "enable", "abc"]),
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_ctl:run_command(["luahook", "enable", "abc"]),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    ?assertEqual({ok, Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
-
 
 case115(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -800,18 +746,17 @@ case115(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
-
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    emqx_ctl:run_command(["luahook", "reload", "abc"]),
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
+    ?assertEqual({ok, Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}}, Ret),
 
     TopicTable = [{<<"d/+/e">>, [{qos, 2}]}],
-    Ret2 = emqx_hooks:run('client.subscribe',[<<"ClientId0">>, <<"UsernameTom">>], TopicTable),
+    Ret2 = emqx_hooks:run('client.subscribe',[#{client_id => <<"myclient">>}], TopicTable),
     ?assertEqual({ok, [{<<"play/football">>, [{qos, 2}]}]}, Ret2),
 
     application:stop(emqx_lua_hook),
     timer:sleep(700).
-
 
 case201(_Config) ->
     ScriptName = "hook_lua/abc.lua",
@@ -825,12 +770,12 @@ case201(_Config) ->
             "\n    return \"on_session_subscribed\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.subscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
 case202(_Config) ->
@@ -843,25 +788,24 @@ case202(_Config) ->
             "\n"
             "\n9/0",   % error code
     ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.subscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop(),
+    emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
-
 
 case203(_Config) ->
     file:del_dir("hook_lua"),  % if this dir is not exist, what will happen?
     emqx_hooks:start_link(),
 
-    emqx_lua_hook_cli:start_link(),
-    emqx_lua_hook_cli:loadall(),
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     Topic = {<<"a/b/c">>, [qos, 1]},
-    Ret = emqx_hooks:run('session.subscribed',[<<"ClientId0">>, <<"UsernameTom">>], Topic),
+    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>}], Topic),
     ?assertEqual({ok, Topic}, Ret),
-    emqx_lua_hook_cli:stop().
+    emqx_lua_hook:stop().
 
 case204(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -883,13 +827,12 @@ case204(_Config) ->
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
 
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
-    ?assertEqual({ok, Msg#mqtt_message{payload = <<"123_Z">>}}, Ret),
+    ?assertEqual({ok, Msg#message{payload = <<"123_Z">>}}, Ret),
 
     application:stop(emqx_lua_hook),
     timer:sleep(700).
-
 
 case205(_Config) ->
     ok = filelib:ensure_dir("hook_lua/a"),
@@ -907,7 +850,7 @@ case205(_Config) ->
     emqx_ctl:start_link(),
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
 
-    Msg = #mqtt_message{qos = 2, retain = true, topic = <<"a/b/c">>, payload = <<"123">>},
+    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run('message.publish',[], Msg),
     ?assertEqual({ok, Msg}, Ret),
 
