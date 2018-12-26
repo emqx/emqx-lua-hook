@@ -8,6 +8,4 @@ data/
 .idea/
 logs/
 *.beam
-
-
-
+.DS_Store
