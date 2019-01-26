@@ -9,3 +9,4 @@ data/
 logs/
 *.beam
 .DS_Store
+erlang.mk
