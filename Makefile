@@ -3,10 +3,10 @@ PROJECT_DESCRIPTION = EMQ X Lua Hooks
 PROJECT_VERSION = 3.1
 
 DEPS = luerl
-dep_luerl = git-emqx https://github.com/grutabow/luerl develop
+dep_luerl = git-emqx https://github.com/grutabow/luerl release-3.1
 
 BUILD_DEPS = emqx cuttlefish
-dep_emqx = git-emqx https://github.com/emqx/emqx develop
+dep_emqx = git-emqx https://github.com/emqx/emqx release-3.1
 dep_cuttlefish = git-emqx https://github.com/emqx/cuttlefish v2.2.1
 
 ERLC_OPTS += +debug_info
