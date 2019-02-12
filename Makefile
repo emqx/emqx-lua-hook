@@ -38,6 +38,15 @@ rebar-clean:
 rebar-compile: rebar-deps
 	rebar3 compile
 
+rebar-eunit: $(CUTTLEFISH_SCRIPT)
+	@rebar3 eunit
+
+rebar-cover:
+	@rebar3 cover
+
+coveralls:
+	@rebar3 coveralls send
+
 rebar-ct: app.config
 	rebar3 ct
 
