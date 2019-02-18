@@ -1,6 +1,5 @@
 PROJECT = emqx_lua_hook
 PROJECT_DESCRIPTION = EMQ X Lua Hooks
-PROJECT_VERSION = 3.1
 
 DEPS = luerl
 dep_luerl = git-emqx https://github.com/grutabow/luerl develop
