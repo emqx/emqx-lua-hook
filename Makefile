@@ -1,12 +1,14 @@
 PROJECT = emqx_lua_hook
 PROJECT_DESCRIPTION = EMQ X Lua Hooks
-PROJECT_VERSION = 3.1
 
 DEPS = luerl
 dep_luerl = git-emqx https://github.com/grutabow/luerl develop
 
+CUR_BRANCH := $(shell git branch | grep -e "^*" | cut -d' ' -f 2)
+BRANCH := $(if $(filter $(CUR_BRANCH), master develop testing), $(CUR_BRANCH), testing)
+
 BUILD_DEPS = emqx cuttlefish
-dep_emqx = git-emqx https://github.com/emqx/emqx develop
+dep_emqx = git-emqx https://github.com/emqx/emqx $(BRANCH)
 dep_cuttlefish = git-emqx https://github.com/emqx/cuttlefish v2.2.1
 
 ERLC_OPTS += +debug_info
@@ -52,6 +54,7 @@ rebar-ct: app.config
 
 rebar-xref:
 	@rebar3 xref
+<<<<<<< HEAD
 
 ## Below are for version consistency check during erlang.mk and rebar3 dual mode support
 none=
@@ -74,3 +77,5 @@ dep-vsn-check:
 		  {[], []} -> halt(0); \
 		  {Rebar, Mk} -> erlang:error({deps_version_discrepancy, [{rebar, Rebar}, {mk, Mk}]}) \
 		end."
+=======
+>>>>>>> testing
