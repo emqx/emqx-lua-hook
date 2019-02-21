@@ -10,3 +10,6 @@ logs/
 *.beam
 .DS_Store
 erlang.mk
+_build/
+rebar.lock
+rebar3.crashdump
