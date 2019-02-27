@@ -19,7 +19,7 @@
 -include("emqx_lua_hook.hrl").
 -include_lib("luerl/src/luerl.hrl").
 
--define(LUA_DIR, "hook_lua/").
+-define(LUA_DIR, "data/scripts/").
 -define(LUA_WILD, ?LUA_DIR++"*.lua").
 -define(PRINT(Format, Args), io:format(Format, Args)).
 -define(PRINT_CMD(Cmd, Descr), io:format("~-48s# ~s~n", [Cmd, Descr])).
