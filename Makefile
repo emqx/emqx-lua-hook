@@ -14,7 +14,7 @@ dep_cuttlefish = git-emqx https://github.com/emqx/cuttlefish v2.2.1
 
 ERLC_OPTS += +debug_info
 
-NO_AUTOPATCH = luerl
+NO_AUTOPATCH = luerl cuttlefish
 
 $(shell [ -f erlang.mk ] || curl -s -o erlang.mk https://raw.githubusercontent.com/emqx/erlmk/master/erlang.mk)
 

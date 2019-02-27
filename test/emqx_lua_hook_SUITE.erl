@@ -20,6 +20,7 @@
 -include_lib("emqx/include/emqx.hrl").
 -include_lib("emqx/include/emqx_mqtt.hrl").
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("common_test/include/ct.hrl").
 
 all() ->
     [case01, case02, case03, case04,
@@ -36,10 +37,31 @@ all() ->
      case201, case202, case203, case204, case205].
 
 init_per_suite(Config) ->
+    generate_config(),
     Config.
 
 end_per_suite(Config) ->
     Config.
+
+generate_config() ->
+    Schema = cuttlefish_schema:files([local_path(["deps/emqx/priv", "emqx.schema"])]),
+    Conf = conf_parse:file([local_path(["deps/emqx/etc", "gen.emqx.conf"])]),
+    NewConfig = cuttlefish_generator:map(Schema, Conf),
+    Vals = proplists:get_value(emqx, NewConfig, []),
+    [application:set_env(emqx, Par, Value) || {Par, Value} <- Vals].
+
+local_path(Components, Module) ->
+    filename:join([get_base_dir(Module) | Components]).
+
+local_path(Components) ->
+    local_path(Components, ?MODULE).
+
+get_base_dir(Module) ->
+    {file, Here} = code:is_loaded(Module),
+    filename:dirname(filename:dirname(Here)).
+
+get_base_dir() ->
+    get_base_dir(?MODULE).
 
 case01(_Config) ->
     ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
