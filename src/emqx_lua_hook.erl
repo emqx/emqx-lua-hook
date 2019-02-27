@@ -18,12 +18,11 @@
 
 -include("emqx_lua_hook.hrl").
 -include_lib("luerl/src/luerl.hrl").
--define(LUA_DIR, "data/scripts/").
--define(LUA_WILD, ?LUA_DIR++"*.lua").
 
 -export([start_link/0, stop/0]).
 -export([load_scripts/0, unload_scrips/0, load_script/1, unload_script/1]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([lua_dir/0]).
 
 -define(SERVER, ?MODULE).
 
@@ -46,6 +45,9 @@ load_script(ScriptName) ->
 
 unload_script(ScriptName) ->
     gen_server:call(?SERVER, {unload_script, ScriptName}).
+
+lua_dir() ->
+    emqx_config:get_env(data_dir) ++ "/scripts/".
 
 %%-----------------------------------------------------------------------------
 %% gen_server callbacks
@@ -112,7 +114,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 
 do_loadall() ->
-    FileList = filelib:wildcard(?LUA_WILD),
+    FileList = filelib:wildcard(lua_dir() ++ "*.lua"),
     List = [do_load(X) || X <- FileList],
     [X || X <- List, is_tuple(X)].
 

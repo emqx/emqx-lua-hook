@@ -42,9 +42,9 @@ end_per_suite(Config) ->
     Config.
 
 case01(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
             "\n    return topic, \"hello\", qos, retain"
             "\nend"
@@ -62,9 +62,9 @@ case01(_Config) ->
     ok = file:delete(ScriptName).
 
 case02(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
             "\n    return false"     % return false to stop hook
             "\nend"
@@ -82,9 +82,9 @@ case02(_Config) ->
     ok = file:delete(ScriptName).
 
 case03(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =  "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -102,9 +102,9 @@ case03(_Config) ->
     ok = file:delete(ScriptName).
 
 case04(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
             "\n    if ClientId == \"broker\" then"
             "\n        return topic, \"hello broker\", qos, retain"
@@ -127,9 +127,9 @@ case04(_Config) ->
     ok = file:delete(ScriptName).
 
 case11(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
             "\n    return 0"
             "\nend"
@@ -147,9 +147,9 @@ case11(_Config) ->
     ok = file:delete(ScriptName).
 
 case12(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
             "\n    return false"
             "\nend"
@@ -167,9 +167,9 @@ case12(_Config) ->
     ok = file:delete(ScriptName).
 
 case13(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_delivered(ClientId, Username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -187,9 +187,9 @@ case13(_Config) ->
     ok = file:delete(ScriptName).
 
 case21(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_acked(ClientId, Username, Topic, Payload, Qos, Retain)"
             "\n    return 0"
             "\nend"
@@ -207,9 +207,9 @@ case21(_Config) ->
     ok = file:delete(ScriptName).
 
 case22(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_acked(topic, payload, qos, retain)"
             "\n    return false"     % return false to stop hook
             "\nend"
@@ -227,9 +227,9 @@ case22(_Config) ->
     ok = file:delete(ScriptName).
 
 case23(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_acked(topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -247,9 +247,9 @@ case23(_Config) ->
     ok = file:delete(ScriptName).
 
 case31(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_connected(ClientId, UserName, ReturnCode)"
             "\n    return 0"
             "\nend"
@@ -267,9 +267,9 @@ case31(_Config) ->
     ok = file:delete(ScriptName).
 
 case32(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_connected(topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -287,9 +287,9 @@ case32(_Config) ->
     ok = file:delete(ScriptName).
 
 case41(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_subscribe(ClientId, Username, Topic)"
             "\n    if Topic == \"a/b/c\" then"
             "\n        Topic = \"a1/b1/c1\";"
@@ -310,9 +310,9 @@ case41(_Config) ->
     ok = file:delete(ScriptName).
 
 case42(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_subscribe(ClientId, Username, Topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
@@ -330,9 +330,9 @@ case42(_Config) ->
     ok = file:delete(ScriptName).
 
 case43(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_subscribe(ClientId, Username, Topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -350,9 +350,9 @@ case43(_Config) ->
     ok = file:delete(ScriptName).
 
 case51(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_unsubscribe(ClientId, Username, Topic)"
             "\n    if Topic == \"a/b/c\" then"
             "\n        Topic = \"a1/b1/c1\";"
@@ -373,9 +373,9 @@ case51(_Config) ->
     ok = file:delete(ScriptName).
 
 case52(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_unsubscribe(ClientId, Username, Topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
@@ -393,9 +393,9 @@ case52(_Config) ->
     ok = file:delete(ScriptName).
 
 case53(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_unsubscribe(ClientId, Username, Topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -413,9 +413,9 @@ case53(_Config) ->
     ok = file:delete(ScriptName).
 
 case61(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_disconnected(ClientId, UserName, Error)"
             "\n    return 0"
             "\nend"
@@ -433,9 +433,9 @@ case61(_Config) ->
     ok = file:delete(ScriptName).
 
 case62(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_client_disconnected(ClientId, UserName, Error)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -453,9 +453,9 @@ case62(_Config) ->
     ok = file:delete(ScriptName).
 
 case71(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_subscribed(ClientId, Username, Topic)"
             "\n    return 0"
             "\nend"
@@ -473,9 +473,9 @@ case71(_Config) ->
     ok = file:delete(ScriptName).
 
 case72(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_subscribed(ClientId, Username, Topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
@@ -493,9 +493,9 @@ case72(_Config) ->
     ok = file:delete(ScriptName).
 
 case73(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_subscribed(ClientId, Username, Topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -513,9 +513,9 @@ case73(_Config) ->
     ok = file:delete(ScriptName).
 
 case81(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
             "\n    return 0"
             "\nend"
@@ -533,9 +533,9 @@ case81(_Config) ->
     ok = file:delete(ScriptName).
 
 case82(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
@@ -553,9 +553,9 @@ case82(_Config) ->
     ok = file:delete(ScriptName).
 
 case83(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
@@ -573,10 +573,10 @@ case83(_Config) ->
     ok = file:delete(ScriptName).
 
 case101(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
-    ScriptName2 = "data/scripts/mn.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
+    ScriptName2 = emqx_lua_hook:lua_dir() ++ "mn.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return topic, \"hello\", qos, retain"
             "\nend"
@@ -613,8 +613,8 @@ case101(_Config) ->
     ok = file:delete(ScriptName2).
 
 case110(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
@@ -634,8 +634,8 @@ case110(_Config) ->
     timer:sleep(700).
 
 case111(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     Code =    "function on_message_publish(topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
@@ -656,8 +656,8 @@ case111(_Config) ->
     timer:sleep(700).
 
 case112(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
@@ -680,8 +680,8 @@ case112(_Config) ->
     timer:sleep(700).
 
 case113(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     ScriptDisabled = ScriptName ++ ".x",
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
                 "\n    return \"changed/topic\", \"hello\", qos, retain"
@@ -706,8 +706,8 @@ case113(_Config) ->
     timer:sleep(700).
 
 case114(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua.x",   % disabled script
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua.x",   % disabled script
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
@@ -728,8 +728,8 @@ case114(_Config) ->
     timer:sleep(700).
 
 case115(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
@@ -759,9 +759,9 @@ case115(_Config) ->
     timer:sleep(700).
 
 case201(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function on_session_subscribed(ClientId, Username, Topic)"
             "\n    return 0"
             "\nend"
@@ -779,9 +779,9 @@ case201(_Config) ->
     ok = file:delete(ScriptName).
 
 case202(_Config) ->
-    ScriptName = "data/scripts/abc.lua",
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     emqx_hooks:start_link(),
-    ok = filelib:ensure_dir("data/scripts/a"),
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
     Code =    "function abc(ClientId, Username, Topic)"
             "\n    return 0"
             "\nend"
@@ -797,7 +797,7 @@ case202(_Config) ->
     ok = file:delete(ScriptName).
 
 case203(_Config) ->
-    file:del_dir("data/scripts"),  % if this dir is not exist, what will happen?
+    file:del_dir(emqx_lua_hook:lua_dir()),  % if this dir is not exist, what will happen?
     emqx_hooks:start_link(),
 
     emqx_lua_hook:start_link(),
@@ -808,8 +808,8 @@ case203(_Config) ->
     emqx_lua_hook:stop().
 
 case204(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return topic, payload .. \"_Z\", qos, retain"
             "\nend"
@@ -835,8 +835,8 @@ case204(_Config) ->
     timer:sleep(700).
 
 case205(_Config) ->
-    ok = filelib:ensure_dir("data/scripts/a"),
-    ScriptName = "data/scripts/abc.lua",
+    ok = filelib:ensure_dir(emqx_lua_hook:lua_dir() ++ "a"),
+    ScriptName = emqx_lua_hook:lua_dir() ++ "abc.lua",
     Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return topic, \"hello\", qos, retain"
             "\nend_with_error"  %% syntax error
