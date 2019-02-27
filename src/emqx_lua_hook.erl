@@ -47,7 +47,7 @@ unload_script(ScriptName) ->
     gen_server:call(?SERVER, {unload_script, ScriptName}).
 
 lua_dir() ->
-    filename:join([emqx_config:get_env(data_dir), "scripts"]).
+    filename:join([emqx_config:get_env(data_dir, "data"), "scripts"]).
 
 %%-----------------------------------------------------------------------------
 %% gen_server callbacks
