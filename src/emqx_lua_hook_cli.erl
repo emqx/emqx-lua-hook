@@ -78,6 +78,6 @@ cmd(_) ->
                     {"luahook disable <Script>", "unload lua script out of hook and disable it"}]).
 
 fullname(Script) ->
-    emqx_lua_hook:lua_dir() ++ Script ++ ".lua".
+    filename:join([emqx_lua_hook:lua_dir(), Script]).
 fullnamedisable(Script) ->
     fullname(Script)++".x".

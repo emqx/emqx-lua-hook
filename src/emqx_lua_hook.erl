@@ -47,7 +47,7 @@ unload_script(ScriptName) ->
     gen_server:call(?SERVER, {unload_script, ScriptName}).
 
 lua_dir() ->
-    emqx_config:get_env(data_dir) ++ "/scripts/".
+    filename:join([emqx_config:get_env(data_dir), "scripts"]).
 
 %%-----------------------------------------------------------------------------
 %% gen_server callbacks
@@ -114,7 +114,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 
 do_loadall() ->
-    FileList = filelib:wildcard(lua_dir() ++ "*.lua"),
+    FileList = filelib:wildcard(filename:join([lua_dir(), "*.lua"])),
     List = [do_load(X) || X <- FileList],
     [X || X <- List, is_tuple(X)].
 
