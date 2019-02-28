@@ -285,35 +285,35 @@ This API exports hook(s) implemented in its lua script.
 ```shell
 emqx_ctl luahook load script_name
 ```
-This command will load lua file "script_name.lua" in hook_lua directory, into emqx hook.
+This command will load lua file "script_name" in hook_lua directory, into emqx hook.
 
 ## unload
 
 ```shell
 emqx_ctl luahook unload script_name
 ```
-This command will unload lua file "script_name.lua" out of emqx hook.
+This command will unload lua file "script_name" out of emqx hook.
 
 ## reload
 
 ```shell
 emqx_ctl luahook reload script_name
 ```
-This command will reload lua file "script_name.lua" in hook_lua. It is useful if a lua script has been modified and apply it immediately.
+This command will reload lua file "script_name" in hook_lua. It is useful if a lua script has been modified and apply it immediately.
 
 ## enable
 
 ```shell
 emqx_ctl luahook enable script_name
 ```
-This command will rename lua file "script_name.lua.x" to "script_name.lua", and load it immediately.
+This command will rename lua file "script_name.x" to "script_name", and load it immediately.
 
 ## disable
 
 ```shell
 emqx_ctl luahook disable script_name
 ```
-This command will unload this script, and rename lua file "script_name.lua" to "script_name.lua.x", which will not be loaded during next boot.
+This command will unload this script, and rename lua file "script_name" to "script_name.x", which will not be loaded during next boot.
 
 
 License

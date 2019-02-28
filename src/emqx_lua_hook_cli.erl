@@ -19,8 +19,6 @@
 -include("emqx_lua_hook.hrl").
 -include_lib("luerl/src/luerl.hrl").
 
--define(LUA_DIR, "hook_lua/").
--define(LUA_WILD, ?LUA_DIR++"*.lua").
 -define(PRINT(Format, Args), io:format(Format, Args)).
 -define(PRINT_CMD(Cmd, Descr), io:format("~-48s# ~s~n", [Cmd, Descr])).
 -define(USAGE(CmdList), [?PRINT_CMD(Cmd, Descr) || {Cmd, Descr} <- CmdList]).
@@ -80,6 +78,6 @@ cmd(_) ->
                     {"luahook disable <Script>", "unload lua script out of hook and disable it"}]).
 
 fullname(Script) ->
-    ?LUA_DIR++Script++".lua".
+    filename:join([emqx_lua_hook:lua_dir(), Script]).
 fullnamedisable(Script) ->
     fullname(Script)++".x".
