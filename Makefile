@@ -3,7 +3,7 @@ PROJECT = emqx_lua_hook
 PROJECT_DESCRIPTION = EMQ X Lua Hooks
 
 DEPS = luerl
-dep_luerl = git-emqx https://github.com/grutabow/luerl release-3.1
+dep_luerl = git-emqx https://github.com/grutabow/luerl develop
 
 CUR_BRANCH := $(shell git branch | grep -e "^*" | cut -d' ' -f 2)
 BRANCH := $(if $(filter $(CUR_BRANCH), master develop), $(CUR_BRANCH), develop)
