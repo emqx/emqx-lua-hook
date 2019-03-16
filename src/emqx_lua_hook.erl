@@ -143,8 +143,8 @@ do_load(FileName) ->
 
 do_register(<<"on_message_publish">>, ScriptName, St) ->
     emqx_lua_script:register_on_message_publish(ScriptName, St);
-do_register(<<"on_message_delivered">>, ScriptName, St) ->
-    emqx_lua_script:register_on_message_delivered(ScriptName, St);
+do_register(<<"on_message_deliver">>, ScriptName, St) ->
+    emqx_lua_script:register_on_message_deliver(ScriptName, St);
 do_register(<<"on_message_acked">>, ScriptName, St) ->
     emqx_lua_script:register_on_message_acked(ScriptName, St);
 do_register(<<"on_client_connected">>, ScriptName, St) ->
