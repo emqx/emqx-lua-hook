@@ -21,23 +21,23 @@
 -export([register_on_message_publish/2, register_on_client_connected/2,
          register_on_client_disconnected/2, register_on_client_subscribe/2,
          register_on_client_unsubscribe/2, register_on_message_acked/2,
-         register_on_message_delivered/2, register_on_session_subscribed/2,
+         register_on_message_deliver/2, register_on_session_subscribed/2,
          register_on_session_unsubscribed/2, unregister_hooks/1]).
 
--export([on_message_publish/3, on_message_delivered/4, on_message_acked/4,
+-export([on_message_publish/3, on_message_deliver/4, on_message_acked/4,
          on_client_connected/5, on_client_subscribe/4, on_client_unsubscribe/4,
-         on_client_disconnected/4, on_session_subscribed/4, on_session_unsubscribed/4]).
+         on_client_disconnected/4, on_session_subscribed/5, on_session_unsubscribed/5]).
 
 -define(EMPTY_USERNAME, "").
 
--define(HOOK_ADD(A, B),      emqx_hooks:add(A, B)).
--define(HOOK_DEL(A, B),      emqx_hooks:del(A, B)).
+-define(HOOK_ADD(A, B),      emqx:hook(A, B)).
+-define(HOOK_DEL(A, B),      emqx:unhook(A, B)).
 
 register_on_message_publish(ScriptName, LuaState) ->
     ?HOOK_ADD('message.publish', {?MODULE, on_message_publish, [ScriptName, LuaState]}).
 
-register_on_message_delivered(ScriptName, LuaState) ->
-    ?HOOK_ADD('message.delivered', {?MODULE, on_message_delivered, [ScriptName, LuaState]}).
+register_on_message_deliver(ScriptName, LuaState) ->
+    ?HOOK_ADD('message.deliver', {?MODULE, on_message_deliver, [ScriptName, LuaState]}).
 
 register_on_message_acked(ScriptName, LuaState) ->
     ?HOOK_ADD('message.acked', {?MODULE, on_message_acked, [ScriptName, LuaState]}).
@@ -62,7 +62,7 @@ register_on_session_unsubscribed(ScriptName, LuaState) ->
 
 unregister_hooks({ScriptName, LuaState}) ->
     ?HOOK_DEL('message.publish',      {?MODULE, on_message_publish,      [ScriptName, LuaState]}),
-    ?HOOK_DEL('message.delivered',    {?MODULE, on_message_delivered,    [ScriptName, LuaState]}),
+    ?HOOK_DEL('message.deliver',      {?MODULE, on_message_deliver,      [ScriptName, LuaState]}),
     ?HOOK_DEL('message.acked',        {?MODULE, on_message_acked,        [ScriptName, LuaState]}),
     ?HOOK_DEL('client.connected',     {?MODULE, on_client_connected,     [ScriptName, LuaState]}),
     ?HOOK_DEL('client.subscribe',     {?MODULE, on_client_subscribe,     [ScriptName, LuaState]}),
@@ -149,32 +149,32 @@ on_client_unsubscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaS
             TopicItem
     end.
 
-on_session_subscribed(#{}, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _ScriptName, _LuaState) ->
+on_session_subscribed(#{}, <<$$, _Rest/binary>>, _Opts, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
-    {ok, TopicItem};
+    ok;
 on_session_subscribed(#{client_id := ClientId, username := Username}, 
-                      TopicItem = {Topic, _Opts}, _ScriptName, LuaState) ->
+                      Topic, _Opts, _ScriptName, LuaState) ->
     ?LOG(debug, "hook session(~s/~s) has subscribed: ~p~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_session_subscribed], [ClientId, Username, Topic], LuaState) of
         {_Result, _St} ->
-            {ok, TopicItem};
+            ok;
         Other ->
             ?LOG(error, "Topic=~p, lua function on_session_subscribed() caught exception, ~p", [Topic, Other]),
-            {ok, TopicItem}
+            ok
     end.
 
-on_session_unsubscribed(#{}, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _ScriptName, _LuaState) ->
+on_session_unsubscribed(#{}, <<$$, _Rest/binary>>, _Opts, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
-    {ok, TopicItem};
+    ok;
 on_session_unsubscribed(#{client_id := ClientId, username := Username}, 
-                        TopicItem = {Topic, _Opts}, _ScriptName, LuaState) ->
+                        Topic, _Opts, _ScriptName, LuaState) ->
     ?LOG(debug, "hook session(~s/~s) has unsubscribed ~p~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_session_unsubscribed], [ClientId, Username, Topic], LuaState) of
         {_Result, _St} ->
-            {ok, TopicItem};
+            ok;
         Other ->
             ?LOG(error, "Topic=~p, lua function on_session_unsubscribed() caught exception, ~p", [Topic, Other]),
-            {ok, TopicItem}
+            ok
     end.
 
 on_message_publish(Message = #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
@@ -202,18 +202,18 @@ on_message_publish(Message = #message{from = Internal}, _ScriptName, LuaState) -
     {Status, NewMsg} = on_message_publish(Message#message{from={Internal, ?EMPTY_USERNAME}}, _ScriptName, LuaState),
     {Status, NewMsg#message{from=Internal}}.
 
-on_message_delivered(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
+on_message_deliver(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_message_delivered(#{client_id := ClientId, username := Username},
-                     Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}}, 
-                     _ScriptName, LuaState) ->
-    ?LOG(debug, "hook message delivered ~s~n", [emqx_message:format(Message)]),
-    case catch luerl:call_function([on_message_delivered], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
+on_message_deliver(#{client_id := ClientId, username := Username},
+                   Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}}, 
+                   _ScriptName, LuaState) ->
+    ?LOG(debug, "hook message deliver ~s~n", [emqx_message:format(Message)]),
+    case catch luerl:call_function([on_message_deliver], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
         {_Result,_St} ->
             ok;
         Other ->
-            ?LOG(error, "Topic=~p, lua function on_message_delivered() caught exception, ~p", [Topic, Other]),
+            ?LOG(error, "Topic=~p, lua function on_message_deliver() caught exception, ~p", [Topic, Other]),
             ok
     end.
 

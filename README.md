@@ -95,10 +95,10 @@ This API is called before publishing message into mqtt engine. It's possible to 
 * new_retain :   a boolean, change mqtt message's retain flag
 * false :        cancel publishing this mqtt message
 
-## on_message_delivered 
+## on_message_deliver
 
 ```lua
-function on_message_delivered(ClientId, Username, topic, payload, qos, retain)
+function on_message_deliver(ClientId, Username, topic, payload, qos, retain)
     -- do your job here 
     return 0
 ```
@@ -268,7 +268,7 @@ This API exports hook(s) implemented in its lua script.
 ### Output
 * hook_name must be a string, which is equal to the hook API(s) implemented. Possible values:
  - "on_message_publish"
- - "on_message_delivered"
+ - "on_message_deliver"
  - "on_message_acked"
  - "on_client_connected"
  - "on_client_subscribe"
