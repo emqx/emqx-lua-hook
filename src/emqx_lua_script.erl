@@ -18,15 +18,30 @@
 -include_lib("emqx/include/emqx.hrl").
 -include_lib("emqx/include/emqx_mqtt.hrl").
 
--export([register_on_message_publish/2, register_on_client_connected/2,
-         register_on_client_disconnected/2, register_on_client_subscribe/2,
-         register_on_client_unsubscribe/2, register_on_message_acked/2,
-         register_on_message_deliver/2, register_on_session_subscribed/2,
-         register_on_session_unsubscribed/2, unregister_hooks/1]).
+-export([register_on_message_publish/2,
+         register_on_client_connected/2,
+         register_on_client_disconnected/2,
+         register_on_client_subscribe/2,
+         register_on_client_unsubscribe/2,
+         register_on_message_acked/2,
+         register_on_message_deliver/2,
+         register_on_session_subscribed/2,
+         register_on_session_unsubscribed/2,
+         register_on_client_authenticate/2,
+         register_on_client_check_acl/2,
+         unregister_hooks/1]).
 
--export([on_message_publish/3, on_message_deliver/4, on_message_acked/4,
-         on_client_connected/5, on_client_subscribe/4, on_client_unsubscribe/4,
-         on_client_disconnected/4, on_session_subscribed/5, on_session_unsubscribed/5]).
+-export([on_message_publish/3,
+         on_message_deliver/4,
+         on_message_acked/4,
+         on_client_connected/5,
+         on_client_subscribe/4,
+         on_client_unsubscribe/4,
+         on_client_disconnected/4,
+         on_session_subscribed/5,
+         on_session_unsubscribed/5,
+         on_client_authenticate/3,
+         on_client_check_acl/6]).
 
 -define(EMPTY_USERNAME, "").
 
@@ -60,6 +75,12 @@ register_on_session_subscribed(ScriptName, LuaState) ->
 register_on_session_unsubscribed(ScriptName, LuaState) ->
     ?HOOK_ADD('session.unsubscribed', {?MODULE, on_session_unsubscribed, [ScriptName, LuaState]}).
 
+register_on_client_authenticate(ScriptName, LuaState) ->
+    ?HOOK_ADD('client.authenticate', {?MODULE, on_client_authenticate, [ScriptName, LuaState]}).
+
+register_on_client_check_acl(ScriptName, LuaState) ->
+    ?HOOK_ADD('client.check_acl', {?MODULE, on_client_check_acl, [ScriptName, LuaState]}).
+
 unregister_hooks({ScriptName, LuaState}) ->
     ?HOOK_DEL('message.publish',      {?MODULE, on_message_publish,      [ScriptName, LuaState]}),
     ?HOOK_DEL('message.deliver',      {?MODULE, on_message_deliver,      [ScriptName, LuaState]}),
@@ -69,7 +90,9 @@ unregister_hooks({ScriptName, LuaState}) ->
     ?HOOK_DEL('client.unsubscribe',   {?MODULE, on_client_unsubscribe,   [ScriptName, LuaState]}),
     ?HOOK_DEL('client.disconnected',  {?MODULE, on_client_disconnected,  [ScriptName, LuaState]}),
     ?HOOK_DEL('session.subscribed',   {?MODULE, on_session_subscribed,   [ScriptName, LuaState]}),
-    ?HOOK_DEL('session.unsubscribed', {?MODULE, on_session_unsubscribed, [ScriptName, LuaState]}).
+    ?HOOK_DEL('session.unsubscribed', {?MODULE, on_session_unsubscribed, [ScriptName, LuaState]}),
+    ?HOOK_DEL('client.authenticate',  {?MODULE, on_client_authenticate,  [ScriptName, LuaState]}),
+    ?HOOK_DEL('client.check_acl',     {?MODULE, on_client_check_acl,     [ScriptName, LuaState]}).
 
 on_client_connected(#{client_id := ClientId, username := Username}, ConnAck, _ConnAttrs, _ScriptName, LuaState) ->
     ?LOG(debug, "hook client ClientId=~s Username=~s connected with code ~p~n", [ClientId, Username, ConnAck]),
@@ -228,6 +251,36 @@ on_message_acked(#{client_id := ClientId, username := Username},
             ok;
         Other ->
             ?LOG(error, "Topic=~p, lua function on_message_acked() caught exception, ~p", [Topic, Other]),
+            ok
+    end.
+
+on_client_authenticate(Credentials = #{client_id := ClientId,
+                                       username  := Username,
+                                       peername  := Peername,
+                                       password  := Password}, _ScriptName, LuaState) ->          
+    case catch luerl:call_function([on_client_authenticate], [ClientId, Username, Peername, Password], LuaState) of
+        {[<<"ignore">>], _St} ->
+            ok;
+        {[<<"ok">>], _St} ->
+            {stop, Credentials#{result => success}};
+        Other ->
+            ?LOG(error, "Lua function on_client_authenticate() caught exception, ~p", [Other]),
+            ok
+    end.
+
+on_client_check_acl(#{client_id := ClientId,
+                      username  := Username,
+                      peername  := Peername,
+                      password  := Password}, PubSub, Topic, _AclResult, _ScriptName, LuaState) ->
+    case catch luerl:call_function([on_client_check_acl], [ClientId, Username, Peername, Password, PubSub, Topic], LuaState) of
+        {[<<"ignore">>],_St} ->
+            ok;
+        {[<<"allow">>], _St} ->
+            {stop, allow};
+        {[<<"deny">>], _St} ->
+            {stop, deny};
+        Other ->
+            ?LOG(error, "Lua function on_client_check_acl() caught exception, ~p", [Other]),
             ok
     end.
 
