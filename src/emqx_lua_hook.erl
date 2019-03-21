@@ -157,8 +157,10 @@ do_register(<<"on_client_disconnected">>, ScriptName, St) ->
     emqx_lua_script:register_on_client_disconnected(ScriptName, St);
 do_register(<<"on_session_subscribed">>, ScriptName, St) ->
     emqx_lua_script:register_on_session_subscribed(ScriptName, St);
-do_register(<<"on_session_unsubscribed">>, ScriptName, St) ->
-    emqx_lua_script:register_on_session_unsubscribed(ScriptName, St);
+do_register(<<"on_client_authenticate">>, ScriptName, St) ->
+    emqx_lua_script:register_on_client_authenticate(ScriptName, St);
+do_register(<<"on_client_check_acl">>, ScriptName, St) ->
+    emqx_lua_script:register_on_client_check_acl(ScriptName, St);
 do_register(Hook, ScriptName, _St) ->
     ?LOG(error, "Discard unknown hook ~p ScriptName=~p", [Hook, ScriptName]).
 
