@@ -34,7 +34,8 @@
          , handle_cast/2
          , handle_info/2
          , terminate/2
-         , code_change/3]).
+         , code_change/3
+         ]).
 
 -export([lua_dir/0]).
 
