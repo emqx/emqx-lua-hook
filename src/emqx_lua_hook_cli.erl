@@ -14,7 +14,10 @@
 
 -module(emqx_lua_hook_cli).
 
--export([load/0, cmd/1, unload/0]).
+-export([ load/0
+        , cmd/1
+        , unload/0
+        ]).
 
 -include("emqx_lua_hook.hrl").
 -include_lib("luerl/src/luerl.hrl").

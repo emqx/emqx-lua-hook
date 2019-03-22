@@ -19,9 +19,24 @@
 -include("emqx_lua_hook.hrl").
 -include_lib("luerl/src/luerl.hrl").
 
--export([start_link/0, stop/0]).
--export([load_scripts/0, unload_scrips/0, load_script/1, unload_script/1]).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([ start_link/0
+        , stop/0
+        ]).
+
+-export([ load_scripts/0
+        , unload_scrips/0
+        , load_script/1
+        , unload_script/1
+        ]).
+
+-export([ init/1
+        , handle_call/3
+        , handle_cast/2
+        , handle_info/2
+        , terminate/2
+        , code_change/3
+        ]).
+
 -export([lua_dir/0]).
 
 -define(SERVER, ?MODULE).
@@ -157,8 +172,10 @@ do_register(<<"on_client_disconnected">>, ScriptName, St) ->
     emqx_lua_script:register_on_client_disconnected(ScriptName, St);
 do_register(<<"on_session_subscribed">>, ScriptName, St) ->
     emqx_lua_script:register_on_session_subscribed(ScriptName, St);
-do_register(<<"on_session_unsubscribed">>, ScriptName, St) ->
-    emqx_lua_script:register_on_session_unsubscribed(ScriptName, St);
+do_register(<<"on_client_authenticate">>, ScriptName, St) ->
+    emqx_lua_script:register_on_client_authenticate(ScriptName, St);
+do_register(<<"on_client_check_acl">>, ScriptName, St) ->
+    emqx_lua_script:register_on_client_check_acl(ScriptName, St);
 do_register(Hook, ScriptName, _St) ->
     ?LOG(error, "Discard unknown hook ~p ScriptName=~p", [Hook, ScriptName]).
 

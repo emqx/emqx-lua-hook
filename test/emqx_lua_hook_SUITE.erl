@@ -34,8 +34,8 @@ all() ->
      case81, case82, case83,
      case101,
      case110, case111, case112, case113, case114, case115,
-     case201, case202, case203, case204, case205].
-    % [case201].
+     case201, case202, case203, case204, case205,
+     case301, case302].
 
 init_per_suite(Config) ->
     generate_config(),
@@ -878,5 +878,51 @@ case205(_Config) ->
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg, Ret),
 
+    application:stop(emqx_lua_hook),
+    timer:sleep(700).
+
+case301(_Config) ->
+    ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
+    ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
+    Code =   "function on_client_authenticate(Clientid, Username, Peername, Password)"
+           "\n    return \"ok\""
+           "\nend"
+           "\n"
+           "\nfunction register_hook()"
+           "\n    return \"on_client_authenticate\""
+           "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqx_hooks:start_link(),
+    emqx_ctl:start_link(),
+    {ok, _} = application:ensure_all_started(emqx_lua_hook),
+    Credentials = #{client_id => undefined,
+                    username  => <<"test">>,
+                    peername  => undefined,
+                    password  => <<"mqtt">>},
+    ?assertEqual(Credentials#{result => success}, emqx_hooks:run_fold('client.authenticate', [], Credentials)),
+    application:stop(emqx_lua_hook),
+    timer:sleep(700).
+
+case302(_Config) ->
+    ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
+    ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
+    Code =   "function on_client_check_acl(Clientid, Username, Peername, Password, PubSub, Topic)"
+           "\n    return \"allow\""
+           "\nend"
+           "\n"
+           "\nfunction register_hook()"
+           "\n    return \"on_client_check_acl\""
+           "\nend",
+    ok = file:write_file(ScriptName, Code),
+
+    emqx_hooks:start_link(),
+    emqx_ctl:start_link(),
+    {ok, _} = application:ensure_all_started(emqx_lua_hook),
+    Credentials = #{client_id => undefined,
+                    username  => <<"test">>,
+                    peername  => undefined,
+                    password  => <<"mqtt">>},
+    ?assertEqual(allow, emqx_hooks:run_fold('client.check_acl', [Credentials, publish, <<"mytopic">>], deny)),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
