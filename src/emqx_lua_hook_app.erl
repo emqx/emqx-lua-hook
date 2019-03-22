@@ -16,7 +16,9 @@
 
 -behaviour(application).
 
--export([start/2, stop/1]).
+-export([  start/2
+         , stop/1
+         ]).
 
 start(_Type, _Args) ->
     {ok, Sup} = emqx_lua_hook_sup:start_link(),
