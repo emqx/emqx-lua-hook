@@ -18,30 +18,32 @@
 -include_lib("emqx/include/emqx.hrl").
 -include_lib("emqx/include/emqx_mqtt.hrl").
 
--export([register_on_message_publish/2,
-         register_on_client_connected/2,
-         register_on_client_disconnected/2,
-         register_on_client_subscribe/2,
-         register_on_client_unsubscribe/2,
-         register_on_message_acked/2,
-         register_on_message_deliver/2,
-         register_on_session_subscribed/2,
-         register_on_session_unsubscribed/2,
-         register_on_client_authenticate/2,
-         register_on_client_check_acl/2,
-         unregister_hooks/1]).
+-export([ register_on_message_publish/2
+        , register_on_client_connected/2
+        , register_on_client_disconnected/2
+        , register_on_client_subscribe/2
+        , register_on_client_unsubscribe/2
+        , register_on_message_acked/2
+        , register_on_message_deliver/2
+        , register_on_session_subscribed/2
+        , register_on_session_unsubscribed/2
+        , register_on_client_authenticate/2
+        , register_on_client_check_acl/2
+        , unregister_hooks/1
+        ]).
 
--export([on_message_publish/3,
-         on_message_deliver/4,
-         on_message_acked/4,
-         on_client_connected/5,
-         on_client_subscribe/4,
-         on_client_unsubscribe/4,
-         on_client_disconnected/4,
-         on_session_subscribed/5,
-         on_session_unsubscribed/5,
-         on_client_authenticate/3,
-         on_client_check_acl/6]).
+-export([ on_message_publish/3
+        , on_message_deliver/4
+        , on_message_acked/4
+        , on_client_connected/5
+        , on_client_subscribe/4
+        , on_client_unsubscribe/4
+        , on_client_disconnected/4
+        , on_session_subscribed/5
+        , on_session_unsubscribed/5
+        , on_client_authenticate/3
+        , on_client_check_acl/6
+        ]).
 
 -define(EMPTY_USERNAME, "").
 
