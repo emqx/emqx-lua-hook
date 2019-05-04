@@ -38,31 +38,11 @@ all() ->
      case301, case302].
 
 init_per_suite(Config) ->
-    generate_config(),
+    emqx_ct_helpers:start_apps([emqx]),
     Config.
 
 end_per_suite(Config) ->
     Config.
-
-generate_config() ->
-    Schema = cuttlefish_schema:files([local_path(["deps/emqx/priv", "emqx.schema"])]),
-    Conf = conf_parse:file([local_path(["deps/emqx/etc", "gen.emqx.conf"])]),
-    NewConfig = cuttlefish_generator:map(Schema, Conf),
-    Vals = proplists:get_value(emqx, NewConfig, []),
-    [application:set_env(emqx, Par, Value) || {Par, Value} <- Vals].
-
-local_path(Components, Module) ->
-    filename:join([get_base_dir(Module) | Components]).
-
-local_path(Components) ->
-    local_path(Components, ?MODULE).
-
-get_base_dir(Module) ->
-    {file, Here} = code:is_loaded(Module),
-    filename:dirname(filename:dirname(Here)).
-
-get_base_dir() ->
-    get_base_dir(?MODULE).
 
 case01(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
