@@ -35,14 +35,21 @@ all() ->
      case101,
      case110, case111, case112, case113, case114, case115,
      case201, case202, case203, case204, case205,
-     case301, case302].
+     case301, case302
+    ].
 
 init_per_suite(Config) ->
-    emqx_ct_helpers:start_apps([emqx]),
+    emqx_ct_helpers:start_apps([emqx, emqx_lua_hook], fun set_special_configs/1),
     Config.
 
 end_per_suite(Config) ->
+    emqx_ct_helpers:stop_apps([emqx]),
     Config.
+
+set_special_configs(emqx) ->
+    application:set_env(emqx, modules, []);
+set_special_configs(_App) ->
+    ok.
 
 case01(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
@@ -633,13 +640,13 @@ case110(_Config) ->
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}, Ret),
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
+    emqx_lua_hook:stop(),
+    ok = file:delete(ScriptName).
 
 case111(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
-    Code =    "function on_message_publish(topic, payload, qos, retain)"
+    Code =  " function on_message_publish(topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
             "\n"
@@ -650,8 +657,8 @@ case111(_Config) ->
 
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
-    {ok,_} = application:ensure_all_started(emqx_lua_hook),
-    emqx_ctl:run_command(["luahook", "unload", "abc.lua"]),
+    {ok, _} = application:ensure_all_started(emqx_lua_hook),
+    emqx_ctl:run_command(["luahook", "unload", ScriptName]),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg, Ret),
@@ -661,7 +668,7 @@ case111(_Config) ->
 case112(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
-    Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
+    Code =  " function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return \"changed/topic\", \"hello\", qos, retain"
             "\nend"
             "\n"
@@ -679,8 +686,8 @@ case112(_Config) ->
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}, Ret),
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
+    emqx_lua_hook:stop(),
+    ok = file:delete(ScriptName).
 
 case113(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
@@ -727,8 +734,8 @@ case114(_Config) ->
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}, Ret),
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
+    emqx_lua_hook:stop(),
+    file:delete(ScriptName).
 
 case115(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
@@ -757,9 +764,8 @@ case115(_Config) ->
     TopicTable = [{<<"d/+/e">>, [{qos, 2}]}],
     Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
     ?assertEqual([{<<"play/football">>, [{qos, 2}]}], Ret2),
-
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
+    emqx_lua_hook:stop(),
+    ok = file:delete(ScriptName).
 
 case201(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
@@ -826,17 +832,17 @@ case204(_Config) ->
             "\n    return \"on_message_publish\", \"on_client_subscribe\", \"on_message_publish\""  % if 2 on_message_publish() are registered, what will happend?
             "\nend",
     ok = file:write_file(ScriptName, Code),
-
+    emqx_lua_hook:start_link(),
+    emqx_lua_hook:load_scripts(),
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
-    {ok,_} = application:ensure_all_started(emqx_lua_hook),
 
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg#message{payload = <<"123_Z">>}, Ret),
 
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
+    emqx_lua_hook:stop(),
+    ok = file:delete(ScriptName).
 
 case205(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
@@ -857,9 +863,8 @@ case205(_Config) ->
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
     Ret = emqx_hooks:run_fold('message.publish',[], Msg),
     ?assertEqual(Msg, Ret),
-
-    application:stop(emqx_lua_hook),
-    timer:sleep(700).
+    emqx_lua_hook:stop(),
+    ok = file:delete(ScriptName).
 
 case301(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
@@ -880,7 +885,7 @@ case301(_Config) ->
                     username  => <<"test">>,
                     peername  => undefined,
                     password  => <<"mqtt">>},
-    ?assertEqual(Credentials#{result => success}, emqx_hooks:run_fold('client.authenticate', [], Credentials)),
+    ?assertEqual(Credentials#{auth_result => success}, emqx_hooks:run_fold('client.authenticate', [], Credentials)),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
 
