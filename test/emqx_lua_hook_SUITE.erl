@@ -881,6 +881,7 @@ case301(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok, _} = application:ensure_all_started(emqx_lua_hook),
+    emqx_lua_hook:load_scripts(),
     Credentials = #{client_id => undefined,
                     username  => <<"test">>,
                     peername  => undefined,
