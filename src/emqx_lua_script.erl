@@ -264,7 +264,7 @@ on_client_authenticate(Credentials = #{client_id := ClientId,
         {[<<"ignore">>], _St} ->
             ok;
         {[<<"ok">>], _St} ->
-            {stop, Credentials#{result => success}};
+            {stop, Credentials#{auth_result => success}};
         Other ->
             ?LOG(error, "Lua function on_client_authenticate() caught exception, ~p", [Other]),
             ok

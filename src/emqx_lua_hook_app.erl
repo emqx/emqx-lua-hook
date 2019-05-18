@@ -29,6 +29,6 @@ start(_Type, _Args) ->
     {ok, Sup}.
 
 stop(_State) ->
-    emqx_lua_hook:unload_scrips(),
+    emqx_lua_hook:unload_scripts(),
     emqx_lua_hook_cli:unload().
 
