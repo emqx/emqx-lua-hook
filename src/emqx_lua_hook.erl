@@ -24,7 +24,7 @@
         ]).
 
 -export([ load_scripts/0
-        , unload_scrips/0
+        , unload_scripts/0
         , load_script/1
         , unload_script/1
         ]).
@@ -52,7 +52,7 @@ stop() ->
 load_scripts() ->
     gen_server:call(?SERVER, load_scripts).
 
-unload_scrips() ->
+unload_scripts() ->
     gen_server:call(?SERVER, unload_scrips).
 
 load_script(ScriptName) ->
