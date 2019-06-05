@@ -11,7 +11,7 @@ Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl)
 
 For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl). 
 
-Lua scripts are stored in hook_lua directory, and will be loaded automatically. If a script is changed during runtime, it should be reloaded to take effect. 
+Lua scripts are stored in 'data/scripts' directory, and will be loaded automatically. If a script is changed during runtime, it should be reloaded to take effect.
 
 Each lua script could export several functions binding with emqx hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.   
 
@@ -24,13 +24,13 @@ bin/emqx_ctl plugins load emqx_lua_hook
 ## NOTE
 
 * Since lua VM is run on erlang VM, its performance is poor. Please do NOT write long or complicated lua scripts which may degrade entire system.
-* It's hard to debug lua script in emqx environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to empttd hook_lua directory.
+* It's hard to debug lua script in emqx environment. Recommended to unit test your lua script in your host first. If everything is OK, deploy it to emqx 'data/scripts' directory.
 * Global variable will lost its value for each call. Do NOT use global variable in lua scripts.
 
 
 # Example
 
-Suppose your emqx is installed in /emqx, and the lua script directory should be /emqx/hook_lua.
+Suppose your emqx is installed in /emqx, and the lua script directory should be /emqx/data/scripts.
 
 Make a new file called "test.lua" and put following code into this file:
 
@@ -44,7 +44,7 @@ function register_hook()
 end
 ```
 
-Execute following command to start emq-lua-hook and load scripts in hook_lua directory.
+Execute following command to start emq-lua-hook and load scripts in 'data/scripts' directory.
 
 ```
 /emqx/bin/emqx_ctl plugins load emqx_lua_hook
@@ -57,7 +57,7 @@ Now let's take a look at what will happend.
 - Send a message, topic="a/b", payload="123"
 - Subscriber will get a message with topic="a/b" and payload="hello". test.lua modifies the payload.
 
-If there are "test1.lua", "test2.lua" and "test3.lua" in /emqx/hook_lua, all these files will be loaded once emq-lua-hook get started.
+If there are "test1.lua", "test2.lua" and "test3.lua" in /emqx/data/scripts, all these files will be loaded once emq-lua-hook get started.
 
 If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or execute following command to reload test2.lua only:
 ```
@@ -285,7 +285,7 @@ This API exports hook(s) implemented in its lua script.
 ```shell
 emqx_ctl luahook load script_name
 ```
-This command will load lua file "script_name" in hook_lua directory, into emqx hook.
+This command will load lua file "script_name" in 'data/scripts' directory, into emqx hook.
 
 ## unload
 
@@ -299,7 +299,7 @@ This command will unload lua file "script_name" out of emqx hook.
 ```shell
 emqx_ctl luahook reload script_name
 ```
-This command will reload lua file "script_name" in hook_lua. It is useful if a lua script has been modified and apply it immediately.
+This command will reload lua file "script_name" in 'data/scripts'. It is useful if a lua script has been modified and apply it immediately.
 
 ## enable
 
