@@ -36,8 +36,8 @@
         , on_message_deliver/4
         , on_message_acked/4
         , on_client_connected/5
-        , on_client_subscribe/4
-        , on_client_unsubscribe/4
+        , on_client_subscribe/5
+        , on_client_unsubscribe/5
         , on_client_disconnected/4
         , on_session_subscribed/5
         , on_session_unsubscribed/5
@@ -116,7 +116,7 @@ on_client_disconnected(#{client_id := ClientId, username := Username}, Error, _S
             ok
     end.
 
-on_client_subscribe(#{client_id := ClientId, username := Username}, TopicTable, _ScriptName, LuaState) ->
+on_client_subscribe(#{client_id := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
     NewTopicTable =
         lists:foldr(fun(TopicItem, Acc) ->
                         case on_client_subscribe_single(ClientId, Username, TopicItem, LuaState) of
@@ -145,7 +145,7 @@ on_client_subscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaSta
             TopicItem
     end.
 
-on_client_unsubscribe(#{client_id := ClientId, username := Username}, TopicTable, _ScriptName, LuaState) ->
+on_client_unsubscribe(#{client_id := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
     NewTopicTable =
         lists:foldr(fun(TopicItem, Acc) ->
                         case on_client_unsubscribe_single(ClientId, Username, TopicItem, LuaState) of
