@@ -314,7 +314,7 @@ case41(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}], Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -334,7 +334,7 @@ case42(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -354,7 +354,7 @@ case43(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -377,7 +377,7 @@ case51(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}], Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -397,7 +397,7 @@ case52(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -417,7 +417,7 @@ case53(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -615,7 +615,7 @@ case101(_Config) ->
     ?assertEqual(#message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"hello">>}, Ret),
 
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}], Ret2),
 
     emqx_lua_hook:stop(),
@@ -762,7 +762,7 @@ case115(_Config) ->
     ?assertEqual(Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}, Ret),
 
     TopicTable = [{<<"d/+/e">>, [{qos, 2}]}],
-    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}], TopicTable),
+    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"play/football">>, [{qos, 2}]}], Ret2),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
