@@ -9,11 +9,11 @@ Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl)
 * only limited standard libraries
 * proper handling of __metatable
 
-For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl). 
+For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl).
 
 Lua scripts are stored in 'data/scripts' directory, and will be loaded automatically. If a script is changed during runtime, it should be reloaded to take effect.
 
-Each lua script could export several functions binding with emqx hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.   
+Each lua script could export several functions binding with emqx hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.
 
 To start this plugin, run following command:
 ```shell
@@ -52,7 +52,7 @@ Execute following command to start emq-lua-hook and load scripts in 'data/script
 
 Now let's take a look at what will happend.
 
-- Start a mqtt client, such as mqtt.fx. 
+- Start a mqtt client, such as mqtt.fx.
 - Subscribe a topic="a/b".
 - Send a message, topic="a/b", payload="123"
 - Subscriber will get a message with topic="a/b" and payload="hello". test.lua modifies the payload.
@@ -71,7 +71,7 @@ If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or ex
 
 ```lua
 function on_message_publish(clientid, username, topic, payload, qos, retain)
-    -- do your job here 
+    -- do your job here
     if some_condition then
         return new_topic, new_payload, new_qos, new_retain
     else
@@ -99,7 +99,7 @@ This API is called before publishing message into mqtt engine. It's possible to 
 
 ```lua
 function on_message_deliver(ClientId, Username, topic, payload, qos, retain)
-    -- do your job here 
+    -- do your job here
     return 0
 ```
 This API is called after a message has been pushed to mqtt clients.
@@ -264,7 +264,7 @@ function register_hook()
     return "hook_name1", "hook_name2", ... , "hook_nameX"
 end
 ```
-This API exports hook(s) implemented in its lua script. 
+This API exports hook(s) implemented in its lua script.
 ### Output
 * hook_name must be a string, which is equal to the hook API(s) implemented. Possible values:
  - "on_message_publish"
