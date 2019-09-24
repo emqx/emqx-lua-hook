@@ -98,7 +98,7 @@ unregister_hooks({ScriptName, LuaState}) ->
     ?HOOK_DEL('client.authenticate',  {?MODULE, on_client_authenticate,  [ScriptName, LuaState]}),
     ?HOOK_DEL('client.check_acl',     {?MODULE, on_client_check_acl,     [ScriptName, LuaState]}).
 
-on_client_connected(#{client_id := ClientId, username := Username}, ConnAck, _ConnAttrs, _ScriptName, LuaState) ->
+on_client_connected(#{clientid := ClientId, username := Username}, ConnAck, _ConnAttrs, _ScriptName, LuaState) ->
     ?LOG(debug, "hook client ClientId=~s Username=~s connected with code ~p~n", [ClientId, Username, ConnAck]),
     case catch luerl:call_function([on_client_connected], [ClientId, Username, ConnAck], LuaState) of
         {_Result, _St} ->
@@ -108,7 +108,7 @@ on_client_connected(#{client_id := ClientId, username := Username}, ConnAck, _Co
             ok
     end.
 
-on_client_disconnected(#{client_id := ClientId, username := Username}, Error, _ScriptName, LuaState) ->
+on_client_disconnected(#{clientid := ClientId, username := Username}, Error, _ScriptName, LuaState) ->
     ?LOG(debug, "hook client ClientId=~s Username=~s disconnected with ~p~n", [ClientId, Username, Error]),
     case catch luerl:call_function([on_client_disconnected], [ClientId, Username, Error], LuaState) of
         {_Result, _St} ->
@@ -118,7 +118,7 @@ on_client_disconnected(#{client_id := ClientId, username := Username}, Error, _S
             ok
     end.
 
-on_client_subscribe(#{client_id := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
+on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
     NewTopicTable =
         lists:foldr(fun(TopicItem, Acc) ->
                         case on_client_subscribe_single(ClientId, Username, TopicItem, LuaState) of
@@ -147,7 +147,7 @@ on_client_subscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaSta
             TopicItem
     end.
 
-on_client_unsubscribe(#{client_id := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
+on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
     NewTopicTable =
         lists:foldr(fun(TopicItem, Acc) ->
                         case on_client_unsubscribe_single(ClientId, Username, TopicItem, LuaState) of
@@ -179,7 +179,7 @@ on_client_unsubscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaS
 on_session_subscribed(#{}, <<$$, _Rest/binary>>, _Opts, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_session_subscribed(#{client_id := ClientId, username := Username}, 
+on_session_subscribed(#{clientid := ClientId, username := Username},
                       Topic, _Opts, _ScriptName, LuaState) ->
     ?LOG(debug, "hook session(~s/~s) has subscribed: ~p~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_session_subscribed], [ClientId, Username, Topic], LuaState) of
@@ -193,7 +193,7 @@ on_session_subscribed(#{client_id := ClientId, username := Username},
 on_session_unsubscribed(#{}, <<$$, _Rest/binary>>, _Opts, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_session_unsubscribed(#{client_id := ClientId, username := Username}, 
+on_session_unsubscribed(#{clientid := ClientId, username := Username},
                         Topic, _Opts, _ScriptName, LuaState) ->
     ?LOG(debug, "hook session(~s/~s) has unsubscribed ~p~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_session_unsubscribed], [ClientId, Username, Topic], LuaState) of
@@ -232,8 +232,8 @@ on_message_publish(Message = #message{from = Internal}, _ScriptName, LuaState) -
 on_message_deliver(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_message_deliver(#{client_id := ClientId, username := Username},
-                   Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}}, 
+on_message_deliver(#{clientid := ClientId, username := Username},
+                   Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}},
                    _ScriptName, LuaState) ->
     ?LOG(debug, "hook message deliver ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_deliver], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
@@ -247,7 +247,7 @@ on_message_deliver(#{client_id := ClientId, username := Username},
 on_message_acked(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_message_acked(#{client_id := ClientId, username := Username},
+on_message_acked(#{clientid := ClientId, username := Username},
                 Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}}, _ScriptName, LuaState) ->
     ?LOG(debug, "hook message acked ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_acked], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
@@ -258,24 +258,25 @@ on_message_acked(#{client_id := ClientId, username := Username},
             ok
     end.
 
-on_client_authenticate(Credentials = #{client_id := ClientId,
-                                       username  := Username,
-                                       peername  := Peername,
-                                       password  := Password}, _ScriptName, LuaState) ->          
-    case catch luerl:call_function([on_client_authenticate], [ClientId, Username, Peername, Password], LuaState) of
+on_client_authenticate(ClientInfo = #{clientid := ClientId,
+                                      username := Username,
+                                      peername := Peername,
+                                      password := Password}, _ScriptName, LuaState) ->
+    case catch luerl:call_function([on_client_authenticate],
+                                   [ClientId, Username, Peername, Password], LuaState) of
         {[<<"ignore">>], _St} ->
             ok;
         {[<<"ok">>], _St} ->
-            {stop, Credentials#{auth_result => success}};
+            {stop, ClientInfo#{auth_result => success}};
         Other ->
             ?LOG(error, "Lua function on_client_authenticate() caught exception, ~p", [Other]),
             ok
     end.
 
-on_client_check_acl(#{client_id := ClientId,
-                      username  := Username,
-                      peername  := Peername,
-                      password  := Password}, PubSub, Topic, _AclResult, _ScriptName, LuaState) ->
+on_client_check_acl(#{clientid := ClientId,
+                      username := Username,
+                      peername := Peername,
+                      password := Password}, PubSub, Topic, _AclResult, _ScriptName, LuaState) ->
     case catch luerl:call_function([on_client_check_acl], [ClientId, Username, Peername, Password, PubSub, Topic], LuaState) of
         {[<<"ignore">>],_St} ->
             ok;
