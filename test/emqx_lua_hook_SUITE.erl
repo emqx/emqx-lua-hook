@@ -153,7 +153,7 @@ case11(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run_fold('message.deliver', [#{client_id => <<"myclient">>, username => <<"myuser">>}], Msg),
+    Ret = emqx_hooks:run_fold('message.deliver', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
     ?assertEqual(Msg, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -173,7 +173,7 @@ case12(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run_fold('message.deliver', [#{client_id => <<"myclient">>, username => <<"myuser">>}], Msg),
+    Ret = emqx_hooks:run_fold('message.deliver', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
     ?assertEqual(Msg, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -193,7 +193,7 @@ case13(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run_fold('message.deliver', [#{client_id => <<"myclient">>, username => <<"myuser">>}], Msg),
+    Ret = emqx_hooks:run_fold('message.deliver', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
     ?assertEqual(Msg, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -213,7 +213,7 @@ case21(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked', [#{client_id => <<"myclient">>, username => <<"myuser">>}, Msg]),
+    Ret = emqx_hooks:run('message.acked', [#{clientid => <<"myclient">>, username => <<"myuser">>}, Msg]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -233,7 +233,7 @@ case22(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked', [#{client_id => <<"myclient">>, username => <<"myuser">>}, Msg]),
+    Ret = emqx_hooks:run('message.acked', [#{clientid => <<"myclient">>, username => <<"myuser">>}, Msg]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -253,7 +253,7 @@ case23(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked', [#{client_id => <<"myclient">>, username => <<"myuser">>}, Msg]),
+    Ret = emqx_hooks:run('message.acked', [#{clientid => <<"myclient">>, username => <<"myuser">>}, Msg]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -274,7 +274,7 @@ case31(_Config) ->
     emqx_lua_hook:load_scripts(),
     ?assertEqual(ok, 
                  emqx_hooks:run('client.connected', 
-                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0, []])),
+                                [#{clientid => <<"myclient">>, username => <<"tester">>}, 0, []])),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -294,7 +294,7 @@ case32(_Config) ->
     emqx_lua_hook:load_scripts(),
     ?assertEqual(ok, 
                  emqx_hooks:run('client.connected', 
-                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0, []])),
+                                [#{clientid => <<"myclient">>, username => <<"tester">>}, 0, []])),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -316,7 +316,7 @@ case41(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.subscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}], Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -336,7 +336,7 @@ case42(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.subscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -356,7 +356,7 @@ case43(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.subscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -379,7 +379,7 @@ case51(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}], Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -399,7 +399,7 @@ case52(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -419,7 +419,7 @@ case53(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret = emqx_hooks:run_fold('client.unsubscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual(TopicTable, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -440,7 +440,7 @@ case61(_Config) ->
     emqx_lua_hook:load_scripts(),
     ?assertEqual(ok, 
                  emqx_hooks:run('client.disconnected', 
-                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0])),
+                                [#{clientid => <<"myclient">>, username => <<"tester">>}, 0])),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -460,7 +460,7 @@ case62(_Config) ->
     emqx_lua_hook:load_scripts(),
     ?assertEqual(ok, 
                  emqx_hooks:run('client.disconnected', 
-                                [#{client_id => <<"myclient">>, username => <<"tester">>}, 0])),
+                                [#{clientid => <<"myclient">>, username => <<"tester">>}, 0])),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -479,7 +479,7 @@ case71(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.subscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -499,7 +499,7 @@ case72(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.subscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -519,7 +519,7 @@ case73(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.subscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -539,7 +539,7 @@ case81(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.unsubscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.unsubscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -559,7 +559,7 @@ case82(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.unsubscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.unsubscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -579,7 +579,7 @@ case83(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.unsubscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.unsubscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -617,7 +617,7 @@ case101(_Config) ->
     ?assertEqual(#message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"hello">>}, Ret),
 
     TopicTable = [{<<"a/b/c">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}],
-    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"a1/b1/c1">>, [qos, 1]}, {<<"d/+/e">>, [{qos, 2}]}], Ret2),
 
     emqx_lua_hook:stop(),
@@ -764,7 +764,7 @@ case115(_Config) ->
     ?assertEqual(Msg#message{topic = <<"changed/topic">>, payload = <<"hello">>}, Ret),
 
     TopicTable = [{<<"d/+/e">>, [{qos, 2}]}],
-    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{client_id => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
+    Ret2 = emqx_hooks:run_fold('client.subscribe',[#{clientid => <<"myclient">>, username => <<"myuser">>}, #{}], TopicTable),
     ?assertEqual([{<<"play/football">>, [{qos, 2}]}], Ret2),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -785,7 +785,7 @@ case201(_Config) ->
     {ok,_} = application:ensure_all_started(emqx_lua_hook),
 
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.subscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     application:stop(emqx_lua_hook),
     ok = file:delete(ScriptName).
@@ -803,7 +803,7 @@ case202(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.subscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -815,7 +815,7 @@ case203(_Config) ->
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Topic = <<"a/b/c">>,
-    Ret = emqx_hooks:run('session.subscribed',[#{client_id => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
+    Ret = emqx_hooks:run('session.subscribed',[#{clientid => <<"myclient">>, username => <<"myuser">>}, Topic, #{first => false}]),
     ?assertEqual(ok, Ret),
     emqx_lua_hook:stop().
 
@@ -884,11 +884,13 @@ case301(_Config) ->
     emqx_ctl:start_link(),
     {ok, _} = application:ensure_all_started(emqx_lua_hook),
     emqx_lua_hook:load_scripts(),
-    Credentials = #{client_id => undefined,
-                    username  => <<"test">>,
-                    peername  => undefined,
-                    password  => <<"mqtt">>},
-    ?assertEqual(Credentials#{auth_result => success}, emqx_hooks:run_fold('client.authenticate', [], Credentials)),
+    ClientInfo = #{clientid => undefined,
+                   username => <<"test">>,
+                   peername => undefined,
+                   password => <<"mqtt">>
+                  },
+    ?assertEqual(ClientInfo#{auth_result => success},
+                 emqx_hooks:run_fold('client.authenticate', [], ClientInfo)),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
 
@@ -907,10 +909,12 @@ case302(_Config) ->
     emqx_hooks:start_link(),
     emqx_ctl:start_link(),
     {ok, _} = application:ensure_all_started(emqx_lua_hook),
-    Credentials = #{client_id => undefined,
-                    username  => <<"test">>,
-                    peername  => undefined,
-                    password  => <<"mqtt">>},
-    ?assertEqual(allow, emqx_hooks:run_fold('client.check_acl', [Credentials, publish, <<"mytopic">>], deny)),
+    ClientInfo = #{clientid => undefined,
+                   username => <<"test">>,
+                   peername => undefined,
+                   password => <<"mqtt">>
+                  },
+    ?assertEqual(allow, emqx_hooks:run_fold('client.check_acl',
+                                            [ClientInfo, publish, <<"mytopic">>], deny)),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
