@@ -26,7 +26,7 @@
         , register_on_client_subscribe/2
         , register_on_client_unsubscribe/2
         , register_on_message_acked/2
-        , register_on_message_deliver/2
+        , register_on_message_delivered/2
         , register_on_session_subscribed/2
         , register_on_session_unsubscribed/2
         , register_on_client_authenticate/2
@@ -34,17 +34,17 @@
         , unregister_hooks/1
         ]).
 
--export([ on_message_publish/3
-        , on_message_deliver/4
-        , on_message_acked/4
-        , on_client_connected/5
+-export([ on_client_connected/4
+        , on_client_disconnected/5
+        , on_client_authenticate/4
+        , on_client_check_acl/6
         , on_client_subscribe/5
         , on_client_unsubscribe/5
-        , on_client_disconnected/4
         , on_session_subscribed/5
         , on_session_unsubscribed/5
-        , on_client_authenticate/3
-        , on_client_check_acl/6
+        , on_message_publish/3
+        , on_message_delivered/4
+        , on_message_acked/4
         ]).
 
 -define(EMPTY_USERNAME, "").
@@ -52,32 +52,11 @@
 -define(HOOK_ADD(A, B),      emqx:hook(A, B)).
 -define(HOOK_DEL(A, B),      emqx:unhook(A, B)).
 
-register_on_message_publish(ScriptName, LuaState) ->
-    ?HOOK_ADD('message.publish', {?MODULE, on_message_publish, [ScriptName, LuaState]}).
-
-register_on_message_deliver(ScriptName, LuaState) ->
-    ?HOOK_ADD('message.deliver', {?MODULE, on_message_deliver, [ScriptName, LuaState]}).
-
-register_on_message_acked(ScriptName, LuaState) ->
-    ?HOOK_ADD('message.acked', {?MODULE, on_message_acked, [ScriptName, LuaState]}).
-
 register_on_client_connected(ScriptName, LuaState) ->
     ?HOOK_ADD('client.connected', {?MODULE, on_client_connected, [ScriptName, LuaState]}).
 
-register_on_client_subscribe(ScriptName, LuaState) ->
-    ?HOOK_ADD('client.subscribe', {?MODULE, on_client_subscribe, [ScriptName, LuaState]}).
-
-register_on_client_unsubscribe(ScriptName, LuaState) ->
-    ?HOOK_ADD('client.unsubscribe', {?MODULE, on_client_unsubscribe, [ScriptName, LuaState]}).
-
 register_on_client_disconnected(ScriptName, LuaState) ->
     ?HOOK_ADD('client.disconnected', {?MODULE, on_client_disconnected, [ScriptName, LuaState]}).
-
-register_on_session_subscribed(ScriptName, LuaState) ->
-    ?HOOK_ADD('session.subscribed', {?MODULE, on_session_subscribed, [ScriptName, LuaState]}).
-
-register_on_session_unsubscribed(ScriptName, LuaState) ->
-    ?HOOK_ADD('session.unsubscribed', {?MODULE, on_session_unsubscribed, [ScriptName, LuaState]}).
 
 register_on_client_authenticate(ScriptName, LuaState) ->
     ?HOOK_ADD('client.authenticate', {?MODULE, on_client_authenticate, [ScriptName, LuaState]}).
@@ -85,104 +64,181 @@ register_on_client_authenticate(ScriptName, LuaState) ->
 register_on_client_check_acl(ScriptName, LuaState) ->
     ?HOOK_ADD('client.check_acl', {?MODULE, on_client_check_acl, [ScriptName, LuaState]}).
 
+register_on_client_subscribe(ScriptName, LuaState) ->
+    ?HOOK_ADD('client.subscribe', {?MODULE, on_client_subscribe, [ScriptName, LuaState]}).
+
+register_on_client_unsubscribe(ScriptName, LuaState) ->
+    ?HOOK_ADD('client.unsubscribe', {?MODULE, on_client_unsubscribe, [ScriptName, LuaState]}).
+
+register_on_session_subscribed(ScriptName, LuaState) ->
+    ?HOOK_ADD('session.subscribed', {?MODULE, on_session_subscribed, [ScriptName, LuaState]}).
+
+register_on_session_unsubscribed(ScriptName, LuaState) ->
+    ?HOOK_ADD('session.unsubscribed', {?MODULE, on_session_unsubscribed, [ScriptName, LuaState]}).
+
+register_on_message_publish(ScriptName, LuaState) ->
+    ?HOOK_ADD('message.publish', {?MODULE, on_message_publish, [ScriptName, LuaState]}).
+
+register_on_message_delivered(ScriptName, LuaState) ->
+    ?HOOK_ADD('message.delivered', {?MODULE, on_message_delivered, [ScriptName, LuaState]}).
+
+register_on_message_acked(ScriptName, LuaState) ->
+    ?HOOK_ADD('message.acked', {?MODULE, on_message_acked, [ScriptName, LuaState]}).
+
 unregister_hooks({ScriptName, LuaState}) ->
-    ?HOOK_DEL('message.publish',      {?MODULE, on_message_publish,      [ScriptName, LuaState]}),
-    ?HOOK_DEL('message.deliver',      {?MODULE, on_message_deliver,      [ScriptName, LuaState]}),
-    ?HOOK_DEL('message.acked',        {?MODULE, on_message_acked,        [ScriptName, LuaState]}),
     ?HOOK_DEL('client.connected',     {?MODULE, on_client_connected,     [ScriptName, LuaState]}),
+    ?HOOK_DEL('client.disconnected',  {?MODULE, on_client_disconnected,  [ScriptName, LuaState]}),
+    ?HOOK_DEL('client.authenticate',  {?MODULE, on_client_authenticate,  [ScriptName, LuaState]}),
+    ?HOOK_DEL('client.check_acl',     {?MODULE, on_client_check_acl,     [ScriptName, LuaState]}),
     ?HOOK_DEL('client.subscribe',     {?MODULE, on_client_subscribe,     [ScriptName, LuaState]}),
     ?HOOK_DEL('client.unsubscribe',   {?MODULE, on_client_unsubscribe,   [ScriptName, LuaState]}),
-    ?HOOK_DEL('client.disconnected',  {?MODULE, on_client_disconnected,  [ScriptName, LuaState]}),
     ?HOOK_DEL('session.subscribed',   {?MODULE, on_session_subscribed,   [ScriptName, LuaState]}),
     ?HOOK_DEL('session.unsubscribed', {?MODULE, on_session_unsubscribed, [ScriptName, LuaState]}),
-    ?HOOK_DEL('client.authenticate',  {?MODULE, on_client_authenticate,  [ScriptName, LuaState]}),
-    ?HOOK_DEL('client.check_acl',     {?MODULE, on_client_check_acl,     [ScriptName, LuaState]}).
+    ?HOOK_DEL('message.publish',      {?MODULE, on_message_publish,      [ScriptName, LuaState]}),
+    ?HOOK_DEL('message.delivered',    {?MODULE, on_message_delivered,    [ScriptName, LuaState]}),
+    ?HOOK_DEL('message.acked',        {?MODULE, on_message_acked,        [ScriptName, LuaState]}).
 
-on_client_connected(#{clientid := ClientId, username := Username}, ConnAck, _ConnAttrs, _ScriptName, LuaState) ->
-    ?LOG(debug, "hook client ClientId=~s Username=~s connected with code ~p~n", [ClientId, Username, ConnAck]),
-    case catch luerl:call_function([on_client_connected], [ClientId, Username, ConnAck], LuaState) of
+on_client_connected(ClientInfo = #{clientid := ClientId, username := Username},
+                    ConnInfo, _ScriptName, LuaState) ->
+    ?LOG(debug, "Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
+                [ClientId, ClientInfo, ConnInfo]),
+    case catch luerl:call_function([on_client_connected], [ClientId, Username], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_client_connected(), which has syntax error, St=~p", [St]),
+            ok;
         {_Result, _St} ->
             ok;
         Other ->
-            ?LOG(error, "lua function on_client_connected() caught exception, ~p", [Other]),
+            ?LOG(error, "Lua function on_client_connected() caught exception, ~p", [Other]),
             ok
     end.
 
-on_client_disconnected(#{clientid := ClientId, username := Username}, Error, _ScriptName, LuaState) ->
-    ?LOG(debug, "hook client ClientId=~s Username=~s disconnected with ~p~n", [ClientId, Username, Error]),
-    case catch luerl:call_function([on_client_disconnected], [ClientId, Username, Error], LuaState) of
+on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username},
+                       ReasonCode, ConnInfo, _ScriptName, LuaState) ->
+    ?LOG(debug, "Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
+                [ClientId, ReasonCode, ClientInfo, ConnInfo]),
+    case catch luerl:call_function([on_client_disconnected], [ClientId, Username, ReasonCode], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_client_disconnected(), which has syntax error, St=~p", [St]),
+            ok;
         {_Result, _St} ->
             ok;
         Other ->
-            ?LOG(error, "lua function on_client_disconnected() caught exception, ~p", [Other]),
+            ?LOG(error, "Lua function on_client_disconnected() caught exception, ~p", [Other]),
             ok
     end.
 
-on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
-    NewTopicTable =
-        lists:foldr(fun(TopicItem, Acc) ->
-                        case on_client_subscribe_single(ClientId, Username, TopicItem, LuaState) of
+on_client_authenticate(#{clientid := ClientId,
+                         username := Username,
+                         peerhost := Peerhost,
+                         password := Password}, Result, _ScriptName, LuaState) ->
+    case catch luerl:call_function([on_client_authenticate],
+                                   [ClientId, Username, inet:ntoa(Peerhost), Password], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_client_authenticate(), which has syntax error, St=~p", [St]),
+            ok;
+        {[<<"ignore">>], _St} ->
+            ok;
+        {[<<"ok">>], _St} ->
+            {stop, Result#{auth_result => success}};
+        Other ->
+            ?LOG(error, "Lua function on_client_authenticate() caught exception, ~p", [Other]),
+            ok
+    end.
+
+on_client_check_acl(#{clientid := ClientId,
+                      username := Username,
+                      peerhost := Peerhost,
+                      password := Password}, Topic, PubSub, _Result, _ScriptName, LuaState) ->
+    case catch luerl:call_function([on_client_check_acl], [ClientId, Username, inet:ntoa(Peerhost), Password, Topic, PubSub], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_client_check_acl(), which has syntax error, St=~p", [St]),
+            ok;
+        {[<<"ignore">>],_St} ->
+            ok;
+        {[<<"allow">>], _St} ->
+            {stop, allow};
+        {[<<"deny">>], _St} ->
+            {stop, deny};
+        Other ->
+            ?LOG(error, "Lua function on_client_check_acl() caught exception, ~p", [Other]),
+            ok
+    end.
+
+on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _ScriptName, LuaState) ->
+    NewTopicFilters =
+        lists:foldr(fun(TopicFilter, Acc) ->
+                        case on_client_subscribe_single(ClientId, Username, TopicFilter, LuaState) of
                             false -> Acc;
-                            NewTopicIem -> [NewTopicIem|Acc]
+                            NewTopicFilter -> [NewTopicFilter | Acc]
                         end
-                    end, [], TopicTable),
-    case NewTopicTable of
+                    end, [], TopicFilters),
+    case NewTopicFilters of
         [] -> stop;
-        Other -> {ok, Other}
+        _ -> {ok, NewTopicFilters}
     end.
 
-on_client_subscribe_single(_ClientId, _Username, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
+on_client_subscribe_single(_ClientId, _Username, TopicFilter = {<<$$, _Rest/binary>>, _SubOpts}, _LuaState) ->
     %% ignore topics starting with $
-    TopicItem;
-on_client_subscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaState) ->
+    TopicFilter;
+on_client_subscribe_single(ClientId, Username, TopicFilter = {Topic, SubOpts}, LuaState) ->
     ?LOG(debug, "hook client(~s/~s) will subscribe: ~p~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_client_subscribe], [ClientId, Username, Topic], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_client_subscribe(), which has syntax error, St=~p", [St]),
+            TopicFilter;
         {[false], _St} ->
             false;   % cancel this topic's subscription
         {[NewTopic], _St} ->
             ?LOG(debug, "LUA function on_client_subscribe() return ~p", [NewTopic]),
-            {NewTopic, Opts};  % modify topic
+            {NewTopic, SubOpts};  % modify topic
         Other ->
-            ?LOG(error, "lua function on_client_subscribe() caught exception, ~p", [Other]),
-            TopicItem
+            ?LOG(error, "Lua function on_client_subscribe() caught exception, ~p", [Other]),
+            TopicFilter
     end.
 
-on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicTable, _ScriptName, LuaState) ->
-    NewTopicTable =
-        lists:foldr(fun(TopicItem, Acc) ->
-                        case on_client_unsubscribe_single(ClientId, Username, TopicItem, LuaState) of
+on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _ScriptName, LuaState) ->
+    NewTopicFilters =
+        lists:foldr(fun(TopicFilter, Acc) ->
+                        case on_client_unsubscribe_single(ClientId, Username, TopicFilter, LuaState) of
                             false -> Acc;
-                            NewTopicIem -> [NewTopicIem|Acc]
+                            NewTopicFilter -> [NewTopicFilter | Acc]
                         end
-                    end, [], TopicTable),
-    case NewTopicTable of
+                    end, [], TopicFilters),
+    case NewTopicFilters of
         [] -> stop;
-        Other -> {ok, Other}
+        _ -> {ok, NewTopicFilters}
     end.
 
-on_client_unsubscribe_single(_ClientId, _Username, TopicItem = {<<$$, _Rest/binary>>, _Opts}, _LuaState) ->
+on_client_unsubscribe_single(_ClientId, _Username, TopicFilter = {<<$$, _Rest/binary>>, _SubOpts}, _LuaState) ->
     %% ignore topics starting with $
-    TopicItem;
-on_client_unsubscribe_single(ClientId, Username, TopicItem = {Topic, Opts}, LuaState) ->
+    TopicFilter;
+on_client_unsubscribe_single(ClientId, Username, TopicFilter = {Topic, SubOpts}, LuaState) ->
     ?LOG(debug, "hook client(~s/~s) unsubscribe ~p~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_client_unsubscribe], [ClientId, Username, Topic], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_client_unsubscribe(), which has syntax error, St=~p", [St]),
+            TopicFilter;
         {[false], _St} ->
             false;   % cancel this topic's unsubscription
         {[NewTopic], _} ->
-            ?LOG(debug, "lua function on_client_unsubscribe() return ~p", [NewTopic]),
-            {NewTopic, Opts};  % modify topic
+            ?LOG(debug, "Lua function on_client_unsubscribe() return ~p", [NewTopic]),
+            {NewTopic, SubOpts};  % modify topic
         Other ->
             ?LOG(error, "Topic=~p, lua function on_client_unsubscribe() caught exception, ~p", [Topic, Other]),
-            TopicItem
+            TopicFilter
     end.
 
-on_session_subscribed(#{}, <<$$, _Rest/binary>>, _Opts, _ScriptName, _LuaState) ->
+on_session_subscribed(#{}, <<$$, _Rest/binary>>, _SubOpts, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
 on_session_subscribed(#{clientid := ClientId, username := Username},
-                      Topic, _Opts, _ScriptName, LuaState) ->
-    ?LOG(debug, "hook session(~s/~s) has subscribed: ~p~n", [ClientId, Username, Topic]),
+                      Topic, SubOpts, _ScriptName, LuaState) ->
+    ?LOG(debug, "Session(~s/s) subscribed ~s with subopts: ~p~n", [ClientId, Username, Topic, SubOpts]),
     case catch luerl:call_function([on_session_subscribed], [ClientId, Username, Topic], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_session_subscribed(), which has syntax error, St=~p", [St]),
+            ok;
         {_Result, _St} ->
             ok;
         Other ->
@@ -190,13 +246,16 @@ on_session_subscribed(#{clientid := ClientId, username := Username},
             ok
     end.
 
-on_session_unsubscribed(#{}, <<$$, _Rest/binary>>, _Opts, _ScriptName, _LuaState) ->
+on_session_unsubscribed(#{}, <<$$, _Rest/binary>>, _SubOpts, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
 on_session_unsubscribed(#{clientid := ClientId, username := Username},
-                        Topic, _Opts, _ScriptName, LuaState) ->
-    ?LOG(debug, "hook session(~s/~s) has unsubscribed ~p~n", [ClientId, Username, Topic]),
+                        Topic, _SubOpts, _ScriptName, LuaState) ->
+    ?LOG(debug, "Session(~s/~s) unsubscribed ~s~n", [ClientId, Username, Topic]),
     case catch luerl:call_function([on_session_unsubscribed], [ClientId, Username, Topic], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_session_unsubscribed(), which has syntax error, St=~p", [St]),
+            ok;
         {_Result, _St} ->
             ok;
         Other ->
@@ -213,12 +272,15 @@ on_message_publish(Message = #message{from = {ClientId, Username},
                                       topic = Topic,
                                       payload = Payload},
                    _ScriptName, LuaState) ->
-    ?LOG(debug, "hook message publish ~s~n", [emqx_message:format(Message)]),
+    ?LOG(debug, "Publish ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_publish], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_message_publish(), which has syntax error, St=~p", [St]),
+            {ok, Message};
         {[false], _St} ->
             {stop, Message};
         {[NewTopic, NewPayload, NewQos, NewRetain], _St} ->
-            ?LOG(debug, "lua function on_message_publish() return ~p", [{NewTopic, NewPayload, NewQos, NewRetain}]),
+            ?LOG(debug, "Lua function on_message_publish() return ~p", [{NewTopic, NewPayload, NewQos, NewRetain}]),
             {ok, Message#message{topic = NewTopic, payload = NewPayload,
                                  qos = round(NewQos), flags = Flags#{retain => to_retain(NewRetain)}}};
         Other ->
@@ -226,21 +288,28 @@ on_message_publish(Message = #message{from = {ClientId, Username},
             {ok, Message}
     end;
 on_message_publish(Message = #message{from = Internal}, _ScriptName, LuaState) ->
-    {Status, NewMsg} = on_message_publish(Message#message{from={Internal, ?EMPTY_USERNAME}}, _ScriptName, LuaState),
-    {Status, NewMsg#message{from=Internal}}.
+    {Status, NewMsg} = on_message_publish(Message#message{from = {Internal, ?EMPTY_USERNAME}}, _ScriptName, LuaState),
+    {Status, NewMsg#message{from = Internal}}.
 
-on_message_deliver(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
+on_message_delivered(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     ok;
-on_message_deliver(#{clientid := ClientId, username := Username},
-                   Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}},
+on_message_delivered(#{clientid := ClientId, username := Username},
+                   Message = #message{topic = Topic, payload = Payload, qos = QoS, flags = Flags = #{retain := Retain}},
                    _ScriptName, LuaState) ->
-    ?LOG(debug, "hook message deliver ~s~n", [emqx_message:format(Message)]),
-    case catch luerl:call_function([on_message_deliver], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
-        {_Result,_St} ->
+    ?LOG(debug, "Message delivered to client(~s): ~s~n",
+                [ClientId, emqx_message:format(Message)]),
+    case catch luerl:call_function([on_message_delivered], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_message_delivered(), which has syntax error, St=~p", [St]),
             ok;
+        {[false], _St} ->
+            ok;
+        {[NewTopic, NewPayload, NewQos, NewRetain], _St} ->
+            {ok, Message#message{topic = NewTopic, payload = NewPayload,
+                                 qos = round(NewQos), flags = Flags#{retain => to_retain(NewRetain)}}};
         Other ->
-            ?LOG(error, "Topic=~p, lua function on_message_deliver() caught exception, ~p", [Topic, Other]),
+            ?LOG(error, "Topic=~p, lua function on_message_delivered() caught exception, ~p", [Topic, Other]),
             ok
     end.
 
@@ -248,44 +317,17 @@ on_message_acked(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaS
     %% ignore topics starting with $
     ok;
 on_message_acked(#{clientid := ClientId, username := Username},
-                Message=#message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}}, _ScriptName, LuaState) ->
-    ?LOG(debug, "hook message acked ~s~n", [emqx_message:format(Message)]),
+                 Message = #message{topic = Topic, payload = Payload, qos = QoS, flags = #{retain := Retain}}, _ScriptName, LuaState) ->
+    ?LOG(debug, "Message acked by client(~s): ~s~n",
+                [ClientId, emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_acked], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
-        {_Result,_St} ->
+        {'EXIT', St} ->
+            ?LOG(error, "Failed to execute function on_message_acked(), which has syntax error, St=~p", [St]),
+            ok;
+        {_Result, _St} ->
             ok;
         Other ->
             ?LOG(error, "Topic=~p, lua function on_message_acked() caught exception, ~p", [Topic, Other]),
-            ok
-    end.
-
-on_client_authenticate(ClientInfo = #{clientid := ClientId,
-                                      username := Username,
-                                      peername := Peername,
-                                      password := Password}, _ScriptName, LuaState) ->
-    case catch luerl:call_function([on_client_authenticate],
-                                   [ClientId, Username, Peername, Password], LuaState) of
-        {[<<"ignore">>], _St} ->
-            ok;
-        {[<<"ok">>], _St} ->
-            {stop, ClientInfo#{auth_result => success}};
-        Other ->
-            ?LOG(error, "Lua function on_client_authenticate() caught exception, ~p", [Other]),
-            ok
-    end.
-
-on_client_check_acl(#{clientid := ClientId,
-                      username := Username,
-                      peername := Peername,
-                      password := Password}, PubSub, Topic, _AclResult, _ScriptName, LuaState) ->
-    case catch luerl:call_function([on_client_check_acl], [ClientId, Username, Peername, Password, PubSub, Topic], LuaState) of
-        {[<<"ignore">>],_St} ->
-            ok;
-        {[<<"allow">>], _St} ->
-            {stop, allow};
-        {[<<"deny">>], _St} ->
-            {stop, deny};
-        Other ->
-            ?LOG(error, "Lua function on_client_check_acl() caught exception, ~p", [Other]),
             ok
     end.
 
