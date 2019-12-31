@@ -27,7 +27,7 @@
 all() ->
     [case01, case02, case03, case04,
      case11, case12, case13,
-     case21, case22, case23,
+     case21, case22,
      case31, case32,
      case41, case42, case43,
      case51, case52, case53,
@@ -77,7 +77,7 @@ case02(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
+    Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return false"     % return false to stop hook
             "\nend"
             "\n"
@@ -97,7 +97,7 @@ case03(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =  "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
+    Code =  "function on_message_publish(clientid, username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -117,8 +117,8 @@ case04(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_publish(ClientId, Username, topic, payload, qos, retain)"
-            "\n    if ClientId == \"broker\" then"
+    Code =    "function on_message_publish(clientid, username, topic, payload, qos, retain)"
+            "\n    if clientid == \"broker\" then"
             "\n        return topic, \"hello broker\", qos, retain"
             "\n    else"
             "\n        return false"     % return false to stop hook
@@ -142,18 +142,18 @@ case11(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_deliver(ClientId, Username, topic, payload, qos, retain)"
-            "\n    return 0"
+    Code =    "function on_message_delivered(clientid, username, topic, payload, qos, retain)"
+            "\n    return false"
             "\nend"
             "\n"
             "\nfunction register_hook()"
-            "\n    return \"on_message_deliver\""
+            "\n    return \"on_message_delivered\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run_fold('message.deliver', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
+    Ret = emqx_hooks:run_fold('message.delivered', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
     ?assertEqual(Msg, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -162,19 +162,19 @@ case12(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_deliver(ClientId, Username, topic, payload, qos, retain)"
-            "\n    return false"
+    Code =    "function on_message_delivered(clientid, username, topic, payload, qos, retain)"
+            "\n    return topic, \"hello broker\", qos, retain"
             "\nend"
             "\n"
             "\nfunction register_hook()"
-            "\n    return \"on_message_deliver\""
+            "\n    return \"on_message_delivered\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run_fold('message.deliver', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
-    ?assertEqual(Msg, Ret),
+    Ret = emqx_hooks:run_fold('message.delivered', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
+    ?assertEqual(Msg#message{payload = <<"hello broker">>}, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -182,18 +182,18 @@ case13(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_deliver(ClientId, Username, topic, payload, qos, retain)"
+    Code =    "function on_message_delivered(clientid, username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
             "\nfunction register_hook()"
-            "\n    return \"on_message_deliver\""
+            "\n    return \"on_message_delivered\""
             "\nend",
     ok = file:write_file(ScriptName, Code),
     emqx_lua_hook:start_link(),
     emqx_lua_hook:load_scripts(),
     Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run_fold('message.deliver', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
+    Ret = emqx_hooks:run_fold('message.delivered', [#{clientid => <<"myclient">>, username => <<"myuser">>}], Msg),
     ?assertEqual(Msg, Ret),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
@@ -202,8 +202,8 @@ case21(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_acked(ClientId, Username, Topic, Payload, Qos, Retain)"
-            "\n    return 0"
+    Code =    "function on_message_acked(clientid, username, topic, payload, qos, retain)"
+            "\n    return true"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -222,27 +222,7 @@ case22(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_acked(topic, payload, qos, retain)"
-            "\n    return false"     % return false to stop hook
-            "\nend"
-            "\n"
-            "\nfunction register_hook()"
-            "\n    return \"on_message_acked\""
-            "\nend",
-    ok = file:write_file(ScriptName, Code),
-    emqx_lua_hook:start_link(),
-    emqx_lua_hook:load_scripts(),
-    Msg = #message{qos = 2, flags = #{retain => true}, topic = <<"a/b/c">>, payload = <<"123">>},
-    Ret = emqx_hooks:run('message.acked', [#{clientid => <<"myclient">>, username => <<"myuser">>}, Msg]),
-    ?assertEqual(ok, Ret),
-    emqx_lua_hook:stop(),
-    ok = file:delete(ScriptName).
-
-case23(_Config) ->
-    ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
-    emqx_hooks:start_link(),
-    ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_message_acked(topic, payload, qos, retain)"
+    Code =    "function on_message_acked(clientid, username, topic, payload, qos, retain)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -262,7 +242,7 @@ case31(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_connected(ClientId, UserName, ReturnCode)"
+    Code =    "function on_client_connected(clientid, username)"
             "\n    return 0"
             "\nend"
             "\n"
@@ -274,7 +254,7 @@ case31(_Config) ->
     emqx_lua_hook:load_scripts(),
     ?assertEqual(ok, 
                  emqx_hooks:run('client.connected', 
-                                [#{clientid => <<"myclient">>, username => <<"tester">>}, 0, []])),
+                                [#{clientid => <<"myclient">>, username => <<"tester">>}, #{}])),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -282,7 +262,7 @@ case32(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_connected(topic, payload, qos, retain)"
+    Code =    "function on_client_connected(clientid, username)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -294,7 +274,7 @@ case32(_Config) ->
     emqx_lua_hook:load_scripts(),
     ?assertEqual(ok, 
                  emqx_hooks:run('client.connected', 
-                                [#{clientid => <<"myclient">>, username => <<"tester">>}, 0, []])),
+                                [#{clientid => <<"myclient">>, username => <<"tester">>}, #{}])),
     emqx_lua_hook:stop(),
     ok = file:delete(ScriptName).
 
@@ -302,11 +282,11 @@ case41(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_subscribe(ClientId, Username, Topic)"
-            "\n    if Topic == \"a/b/c\" then"
-            "\n        Topic = \"a1/b1/c1\";"
+    Code =    "function on_client_subscribe(clientid, username, topic)"
+            "\n    if topic == \"a/b/c\" then"
+            "\n        topic = \"a1/b1/c1\";"
             "\n    end"
-            "\n    return Topic"
+            "\n    return topic"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -325,7 +305,7 @@ case42(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_subscribe(ClientId, Username, Topic)"
+    Code =    "function on_client_subscribe(clientid, username, topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
             "\n"
@@ -345,7 +325,7 @@ case43(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_subscribe(ClientId, Username, Topic)"
+    Code =    "function on_client_subscribe(clientid, username, topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -365,11 +345,11 @@ case51(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_unsubscribe(ClientId, Username, Topic)"
-            "\n    if Topic == \"a/b/c\" then"
-            "\n        Topic = \"a1/b1/c1\";"
+    Code =    "function on_client_unsubscribe(clientid, username, topic)"
+            "\n    if topic == \"a/b/c\" then"
+            "\n        topic = \"a1/b1/c1\";"
             "\n    end"
-            "\n    return Topic"
+            "\n    return topic"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -388,7 +368,7 @@ case52(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_unsubscribe(ClientId, Username, Topic)"
+    Code =    "function on_client_unsubscribe(clientid, username, topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
             "\n"
@@ -408,7 +388,7 @@ case53(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_unsubscribe(ClientId, Username, Topic)"
+    Code =    "function on_client_unsubscribe(clientid, username, topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -428,7 +408,7 @@ case61(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_disconnected(ClientId, UserName, Error)"
+    Code =    "function on_client_disconnected(clientid, username, reasoncode)"
             "\n    return 0"
             "\nend"
             "\n"
@@ -448,7 +428,7 @@ case62(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_client_disconnected(ClientId, UserName, Error)"
+    Code =    "function on_client_disconnected(clientid, username, reasoncode)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -468,7 +448,7 @@ case71(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_session_subscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_subscribed(clientid, username, topic)"
             "\n    return 0"
             "\nend"
             "\n"
@@ -488,7 +468,7 @@ case72(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_session_subscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_subscribed(clientid, username, topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
             "\n"
@@ -508,7 +488,7 @@ case73(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_session_subscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_subscribed(clientid, username, topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -528,7 +508,7 @@ case81(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_unsubscribed(clientid, username, topic)"
             "\n    return 0"
             "\nend"
             "\n"
@@ -548,7 +528,7 @@ case82(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_unsubscribed(clientid, username, topic)"
             "\n    return false"     % return false to stop hook
             "\nend"
             "\n"
@@ -568,7 +548,7 @@ case83(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function on_session_unsubscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_unsubscribed(clientid, username, topic)"
             "\n    return 9/0"     % this code has fatal error
             "\nend"
             "\n"
@@ -598,11 +578,11 @@ case101(_Config) ->
             "\nend",
     ok = file:write_file(ScriptName, Code),
 
-    Code2 =    "function on_client_subscribe(ClientId, Username, Topic)"
-            "\n    if Topic == \"a/b/c\" then"
-            "\n        Topic = \"a1/b1/c1\";"
+    Code2 =    "function on_client_subscribe(clientid, username, topic)"
+            "\n    if topic == \"a/b/c\" then"
+            "\n        topic = \"a1/b1/c1\";"
             "\n    end"
-            "\n    return Topic"
+            "\n    return topic"
             "\nend"
             "\n"
             "\nfunction register_hook()"
@@ -772,7 +752,7 @@ case115(_Config) ->
 case201(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
-    Code =    "function on_session_subscribed(ClientId, Username, Topic)"
+    Code =    "function on_session_subscribed(clientid, username, topic)"
             "\n    return 0"
             "\nend"
             "\n"
@@ -794,7 +774,7 @@ case202(_Config) ->
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     emqx_hooks:start_link(),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
-    Code =    "function abc(ClientId, Username, Topic)"
+    Code =    "function abc(clientid, username, topic)"
             "\n    return 0"
             "\nend"
             "\n"
@@ -871,7 +851,7 @@ case205(_Config) ->
 case301(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
-    Code =   "function on_client_authenticate(Clientid, Username, Peername, Password)"
+    Code =   "function on_client_authenticate(clientid, username, peerhost, password)"
            "\n    return \"ok\""
            "\nend"
            "\n"
@@ -889,15 +869,16 @@ case301(_Config) ->
                    peername => undefined,
                    password => <<"mqtt">>
                   },
-    ?assertEqual(ClientInfo#{auth_result => success},
-                 emqx_hooks:run_fold('client.authenticate', [], ClientInfo)),
+    Result = #{auth_result => success, anonymous => true},
+    ?assertEqual(Result#{auth_result => success},
+                 emqx_hooks:run_fold('client.authenticate', [ClientInfo], Result)),
     application:stop(emqx_lua_hook),
     timer:sleep(700).
 
 case302(_Config) ->
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
-    Code =   "function on_client_check_acl(Clientid, Username, Peername, Password, PubSub, Topic)"
+    Code =   "function on_client_check_acl(clientid, username, peerhost, password, topic, pubsub)"
            "\n    return \"allow\""
            "\nend"
            "\n"
