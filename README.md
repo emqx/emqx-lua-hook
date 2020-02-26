@@ -7,7 +7,7 @@ Lua virtual machine is implemented by [luerl](https://github.com/rvirding/luerl)
 * label and goto
 * tail-call optimisation in return
 * only limited standard libraries
-* proper handling of __metatable
+* proper handling of `__metatable`
 
 For the supported functions, please refer to luerl's [project page](https://github.com/rvirding/luerl).
 
@@ -16,6 +16,7 @@ Lua scripts are stored in 'data/scripts' directory, and will be loaded automatic
 Each lua script could export several functions binding with emqx hooks, triggered by message publish, topic subscribe, client connect, etc. Different lua scripts may export same type function, binding with a same event. But their order being triggered is not guaranteed.
 
 To start this plugin, run following command:
+
 ```shell
 bin/emqx_ctl plugins load emqx_lua_hook
 ```
@@ -60,12 +61,15 @@ Now let's take a look at what will happend.
 If there are "test1.lua", "test2.lua" and "test3.lua" in /emqx/data/scripts, all these files will be loaded once emq-lua-hook get started.
 
 If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or execute following command to reload test2.lua only:
+
 ```
 /emqx/bin/emqx_ctl luahook reload test2.lua
 ```
 
 
 # Hook API
+
+You can find all example codes in the `examples.lua` file.
 
 ## on_message_publish
 
@@ -95,72 +99,71 @@ This API is called before publishing message into mqtt engine. It's possible to 
 * new_retain :   a boolean, change mqtt message's retain flag
 * false :        cancel publishing this mqtt message
 
-## on_message_deliver
+## on_message_delivered
 
 ```lua
-function on_message_deliver(ClientId, Username, topic, payload, qos, retain)
+function on_message_delivered(clientid, username, topic, payload, qos, retain)
     -- do your job here
-    return 0
+    return topic, payload, qos, retain
+end
 ```
 This API is called after a message has been pushed to mqtt clients.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
+* clientId : a string, mqtt client id.
+* username : a string mqtt username
 * topic :   a string, mqtt message's topic
 * payload :  a string, mqtt message's payload
 * qos :     a number, mqtt message's QOS (0, 1, 2)
 * retain :   a boolean, mqtt message's retain flag
+
 ### Output
-* always be 0
+Needless
 
 ## on_message_acked
 
 ```lua
-function on_message_acked(ClientId, Username, Topic, Payload, Qos, Retain)
-    return 0
-end"
+function on_message_acked(clientId, username, topic, payload, qos, retain)
+    return
+end
 ```
 This API is called after a message has been acknowledged.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
+* clientId : a string, mqtt client id.
+* username : a string mqtt username
 * topic :   a string, mqtt message's topic
 * payload :  a string, mqtt message's payload
 * qos :     a number, mqtt message's QOS (0, 1, 2)
 * retain :   a boolean, mqtt message's retain flag
-### Output
-* always be 0
 
+### Output
+Needless
 
 ## on_client_connected
 
 ```lua
-function on_client_connected(ClientId, UserName, ReturnCode)
+function on_client_connected(clientId, userName, returncode)
     return 0
 nend
 ```
 This API is called after a mqtt client has establish a connection with broker.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
-* ReturnCode :   a number, has following values
-    - 0 : Connection accepted
-    - 1 : Unacceptable protocol version
-    - 2 : Client Identifier is correct UTF-8 but not allowed by the Server
-    - 3 : Server unavailable
-    - 4 : Username or password is malformed
-    - 5 : Client is not authorized to connect
+* clientid : a string, mqtt client id.
+* username : a string mqtt username
+* returncode : a string, has following values
+    - success : Connection accepted
+    - Others is failed reason
+
 ### Output
-* always be 0
+Needless
 
 
 ## on_client_subscribe
 
 ```lua
-function on_client_subscribe(ClientId, Username, Topic)
+function on_client_subscribe(clientId, username, topic)
     -- do your job here
     if some_condition then
         return new_topic
@@ -172,9 +175,10 @@ end
 This API is called before mqtt engine process client's subscribe command. It is possible to change topic or cancel it.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
-* Topic :   a string, mqtt message's topic
+* clientid : a string, mqtt client id.
+* username : a string mqtt username
+* topic :   a string, mqtt message's topic
+
 ### Output
 * new_topic :   a string, change mqtt message's topic
 * false :    cancel subscription
@@ -183,7 +187,7 @@ This API is called before mqtt engine process client's subscribe command. It is 
 ## on_client_unsubscribe
 
 ```lua
- function on_client_unsubscribe(ClientId, Username, Topic)
+ function on_client_unsubscribe(clientId, username, topic)
     -- do your job here
     if some_condition then
         return new_topic
@@ -195,64 +199,66 @@ end
 This API is called before mqtt engine process client's unsubscribe command. It is possible to change topic or cancel it.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
-* Topic :   a string, mqtt message's topic
+* clientid : a string, mqtt client id.
+* username : a string mqtt username
+* topic :   a string, mqtt message's topic
+
 ### Output
 * new_topic :   a string, change mqtt message's topic
 * false :    cancel unsubscription
 
-
 ## on_client_disconnected
 
 ```lua
-function on_client_disconnected(ClientId, Username, Error)
-    return 0
+function on_client_disconnected(clientId, username, error)
+    return
 end
 ```
 This API is called after a mqtt client has disconnected.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
-* Error :   a string, denote the disconnection reason.
+* clientId : a string, mqtt client id.
+* username : a string mqtt username
+* error :   a string, denote the disconnection reason.
+
 ### Output
-* always be 0.
+Needless
 
 
 ## on_session_subscribed
 
 ```lua
 function on_session_subscribed(ClientId, Username, Topic)
-    return 0
+    return
 end
 ```
 This API is called after a subscription has been done.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
-* Topic :   a string, mqtt's topic filter.
+* clientid : a string, mqtt client id.
+* username : a string mqtt username
+* topic :   a string, mqtt's topic filter.
+
 ### Output
-* always be 0.
+Needless
 
 
 ## on_session_unsubscribed
 
 ```lua
-function on_session_unsubscribed(ClientId, Username, Topic)
-    return 0
+function on_session_unsubscribed(clientid, username, topic)
+    return
 end
 ```
 This API is called after a unsubscription has been done.
 
 ### Input
-* ClientId : a string, mqtt client id.
-* Username : a string mqtt username
-* Topic :   a string, mqtt's topic filter.
-### Output
-* always be 0.
+* clientid : a string, mqtt client id.
+* username : a string mqtt username
+* topic :   a string, mqtt's topic filter.
 
+### Output
+Needless
 
 ## register_hook
 ```lua
@@ -264,11 +270,13 @@ function register_hook()
     return "hook_name1", "hook_name2", ... , "hook_nameX"
 end
 ```
+
 This API exports hook(s) implemented in its lua script.
+
 ### Output
 * hook_name must be a string, which is equal to the hook API(s) implemented. Possible values:
  - "on_message_publish"
- - "on_message_deliver"
+ - "on_message_delivered"
  - "on_message_acked"
  - "on_client_connected"
  - "on_client_subscribe"
@@ -276,7 +284,6 @@ This API exports hook(s) implemented in its lua script.
  - "on_client_disconnected"
  - "on_session_subscribed"
  - "on_session_unsubscribed"
-
 
 # management command
 
