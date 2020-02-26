@@ -71,81 +71,12 @@ If test2.lua has been changed, restart emq-lua-hook to reload all scripts, or ex
 
 You can find all example codes in the `examples.lua` file.
 
-## on_message_publish
-
-```lua
-function on_message_publish(clientid, username, topic, payload, qos, retain)
-    -- do your job here
-    if some_condition then
-        return new_topic, new_payload, new_qos, new_retain
-    else
-        return false
-    end
-end
-```
-This API is called before publishing message into mqtt engine. It's possible to change message or cancel publish in this API.
-
-### Input
-* clientid : a string, mqtt client id of publisher.
-* username : a string, mqtt username of publisher
-* topic :   a string, mqtt message's topic
-* payload :  a string, mqtt message's payload
-* qos :     a number, mqtt message's QOS (0, 1, 2)
-* retain :   a boolean, mqtt message's retain flag
-### Output
-* new_topic :   a string, change mqtt message's topic
-* new_payload :  a string, change mqtt message's payload
-* new_qos :      a number, change mqtt message's QOS
-* new_retain :   a boolean, change mqtt message's retain flag
-* false :        cancel publishing this mqtt message
-
-## on_message_delivered
-
-```lua
-function on_message_delivered(clientid, username, topic, payload, qos, retain)
-    -- do your job here
-    return topic, payload, qos, retain
-end
-```
-This API is called after a message has been pushed to mqtt clients.
-
-### Input
-* clientId : a string, mqtt client id.
-* username : a string mqtt username
-* topic :   a string, mqtt message's topic
-* payload :  a string, mqtt message's payload
-* qos :     a number, mqtt message's QOS (0, 1, 2)
-* retain :   a boolean, mqtt message's retain flag
-
-### Output
-Needless
-
-## on_message_acked
-
-```lua
-function on_message_acked(clientId, username, topic, payload, qos, retain)
-    return
-end
-```
-This API is called after a message has been acknowledged.
-
-### Input
-* clientId : a string, mqtt client id.
-* username : a string mqtt username
-* topic :   a string, mqtt message's topic
-* payload :  a string, mqtt message's payload
-* qos :     a number, mqtt message's QOS (0, 1, 2)
-* retain :   a boolean, mqtt message's retain flag
-
-### Output
-Needless
-
 ## on_client_connected
 
 ```lua
 function on_client_connected(clientId, userName, returncode)
     return 0
-nend
+end
 ```
 This API is called after a mqtt client has establish a connection with broker.
 
@@ -159,6 +90,22 @@ This API is called after a mqtt client has establish a connection with broker.
 ### Output
 Needless
 
+## on_client_disconnected
+
+```lua
+function on_client_disconnected(clientId, username, error)
+    return
+end
+```
+This API is called after a mqtt client has disconnected.
+
+### Input
+* clientId : a string, mqtt client id.
+* username : a string mqtt username
+* error :   a string, denote the disconnection reason.
+
+### Output
+Needless
 
 ## on_client_subscribe
 
@@ -207,23 +154,6 @@ This API is called before mqtt engine process client's unsubscribe command. It i
 * new_topic :   a string, change mqtt message's topic
 * false :    cancel unsubscription
 
-## on_client_disconnected
-
-```lua
-function on_client_disconnected(clientId, username, error)
-    return
-end
-```
-This API is called after a mqtt client has disconnected.
-
-### Input
-* clientId : a string, mqtt client id.
-* username : a string mqtt username
-* error :   a string, denote the disconnection reason.
-
-### Output
-Needless
-
 
 ## on_session_subscribed
 
@@ -260,11 +190,84 @@ This API is called after a unsubscription has been done.
 ### Output
 Needless
 
+## on_message_delivered
+
+```lua
+function on_message_delivered(clientid, username, topic, payload, qos, retain)
+    -- do your job here
+    return topic, payload, qos, retain
+end
+```
+This API is called after a message has been pushed to mqtt clients.
+
+### Input
+* clientId : a string, mqtt client id.
+* username : a string mqtt username
+* topic :   a string, mqtt message's topic
+* payload :  a string, mqtt message's payload
+* qos :     a number, mqtt message's QOS (0, 1, 2)
+* retain :   a boolean, mqtt message's retain flag
+
+### Output
+Needless
+
+## on_message_acked
+
+```lua
+function on_message_acked(clientId, username, topic, payload, qos, retain)
+    return
+end
+```
+This API is called after a message has been acknowledged.
+
+### Input
+* clientId : a string, mqtt client id.
+* username : a string mqtt username
+* topic :   a string, mqtt message's topic
+* payload :  a string, mqtt message's payload
+* qos :     a number, mqtt message's QOS (0, 1, 2)
+* retain :   a boolean, mqtt message's retain flag
+
+### Output
+Needless
+
+## on_message_publish
+
+```lua
+function on_message_publish(clientid, username, topic, payload, qos, retain)
+    -- do your job here
+    if some_condition then
+        return new_topic, new_payload, new_qos, new_retain
+    else
+        return false
+    end
+end
+```
+This API is called before publishing message into mqtt engine. It's possible to change message or cancel publish in this API.
+
+### Input
+* clientid : a string, mqtt client id of publisher.
+* username : a string, mqtt username of publisher
+* topic :   a string, mqtt message's topic
+* payload :  a string, mqtt message's payload
+* qos :     a number, mqtt message's QOS (0, 1, 2)
+* retain :   a boolean, mqtt message's retain flag
+
+### Output
+* new_topic :   a string, change mqtt message's topic
+* new_payload :  a string, change mqtt message's payload
+* new_qos :      a number, change mqtt message's QOS
+* new_retain :   a boolean, change mqtt message's retain flag
+* false :        cancel publishing this mqtt message
+
 ## register_hook
+
 ```lua
 function register_hook()
     return "hook_name"
 end
+
+-- Or register multiple callbacks
 
 function register_hook()
     return "hook_name1", "hook_name2", ... , "hook_nameX"
@@ -275,15 +278,15 @@ This API exports hook(s) implemented in its lua script.
 
 ### Output
 * hook_name must be a string, which is equal to the hook API(s) implemented. Possible values:
- - "on_message_publish"
- - "on_message_delivered"
- - "on_message_acked"
  - "on_client_connected"
+ - "on_client_disconnected"
  - "on_client_subscribe"
  - "on_client_unsubscribe"
- - "on_client_disconnected"
  - "on_session_subscribed"
  - "on_session_unsubscribed"
+ - "on_message_delivered"
+ - "on_message_acked"
+ - "on_message_publish"
 
 # management command
 
