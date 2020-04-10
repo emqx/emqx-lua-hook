@@ -876,6 +876,7 @@ case301(_Config) ->
     timer:sleep(700).
 
 case302(_Config) ->
+    emqx_modules:load_module(emqx_mod_acl_internal, false),
     ok = filelib:ensure_dir(filename:join([emqx_lua_hook:lua_dir(), "a"])),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     Code =   "function on_client_check_acl(clientid, username, peerhost, password, topic, pubsub)"
