@@ -22,6 +22,7 @@
 
 -export([ start/2
         , stop/1
+        , prep_stop/1
         ]).
 
 start(_Type, _Args) ->
@@ -30,7 +31,10 @@ start(_Type, _Args) ->
     emqx_lua_hook_cli:load(),
     {ok, Sup}.
 
-stop(_State) ->
+prep_stop(State) ->
     emqx_lua_hook:unload_scripts(),
-    emqx_lua_hook_cli:unload().
+    emqx_lua_hook_cli:unload(),
+    State.
 
+stop(_State) ->
+    ok.
