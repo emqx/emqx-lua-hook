@@ -47,7 +47,7 @@
         , on_message_acked/4
         ]).
 
--define(EMPTY_USERNAME, "").
+-define(EMPTY_USERNAME, <<"">>).
 
 -define(HOOK_ADD(A, B),      emqx:hook(A, B)).
 -define(HOOK_DEL(A, B),      emqx:unhook(A, B)).
@@ -266,12 +266,14 @@ on_session_unsubscribed(#{clientid := ClientId, username := Username},
 on_message_publish(Message = #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
     {ok, Message};
-on_message_publish(Message = #message{from = {ClientId, Username},
+on_message_publish(Message = #message{from = ClientId,
                                       qos = QoS,
                                       flags = Flags = #{retain := Retain},
                                       topic = Topic,
-                                      payload = Payload},
+                                      payload = Payload,
+                                      headers = Headers},
                    _ScriptName, LuaState) ->
+    Username = maps:get(username, Headers, ?EMPTY_USERNAME),
     ?LOG(debug, "Publish ~s~n", [emqx_message:format(Message)]),
     case catch luerl:call_function([on_message_publish], [ClientId, Username, Topic, Payload, QoS, Retain], LuaState) of
         {'EXIT', St} ->
@@ -286,10 +288,7 @@ on_message_publish(Message = #message{from = {ClientId, Username},
         Other ->
             ?LOG(error, "Topic=~p, lua function on_message_publish caught exception, ~p", [Topic, Other]),
             {ok, Message}
-    end;
-on_message_publish(Message = #message{from = Internal}, _ScriptName, LuaState) ->
-    {Status, NewMsg} = on_message_publish(Message#message{from = {Internal, ?EMPTY_USERNAME}}, _ScriptName, LuaState),
-    {Status, NewMsg#message{from = Internal}}.
+    end.
 
 on_message_delivered(#{}, #message{topic = <<$$, _Rest/binary>>}, _ScriptName, _LuaState) ->
     %% ignore topics starting with $
