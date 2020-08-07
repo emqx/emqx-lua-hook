@@ -15,3 +15,5 @@ rebar.lock
 rebar3.crashdump
 bbmustache/
 *.conf.rendered
+.rebar3
+*.swp
