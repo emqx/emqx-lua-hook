@@ -677,6 +677,7 @@ case301(_Config) ->
                  emqx_hooks:run_fold('client.authenticate', [ClientInfo], Result)).
 
 case302(_Config) ->
+    application:set_env(emqx, modules, [{emqx_mod_acl_internal, [{acl_file, emqx:get_env(acl_file)}]}]),
     emqx_modules:load_module(emqx_mod_acl_internal, false),
     ScriptName = filename:join([emqx_lua_hook:lua_dir(), "abc.lua"]),
     Code =   "function on_client_check_acl(clientid, username, peerhost, password, topic, pubsub)"
