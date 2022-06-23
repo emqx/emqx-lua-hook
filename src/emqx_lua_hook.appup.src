@@ -1,0 +1,4 @@
+%% -*- mode: erlang -*-
+{VSN,
+  [{<<".*">>,[{load_module,emqx_lua_script,brutal_purge,soft_purge,[]}]}],
+  [{<<".*">>,[{load_module,emqx_lua_script,brutal_purge,soft_purge,[]}]}]}.
