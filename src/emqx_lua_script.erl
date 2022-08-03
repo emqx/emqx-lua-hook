@@ -169,11 +169,8 @@ on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, 
     NewTopicFilters =
         lists:foldr(fun(TopicFilter, Acc) ->
                         case on_client_subscribe_single(ClientId, Username, TopicFilter, LuaState) of
-                            false ->
-                                {Topic, Opts} = TopicFilter,
-                                [{Topic, Opts#{deny_subscription => true}} | Acc];
-                            NewTopicFilter ->
-                                [NewTopicFilter | Acc]
+                            false -> Acc;
+                            NewTopicFilter -> [NewTopicFilter | Acc]
                         end
                     end, [], TopicFilters),
     case NewTopicFilters of
